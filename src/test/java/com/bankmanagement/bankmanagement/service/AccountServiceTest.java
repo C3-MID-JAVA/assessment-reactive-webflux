@@ -13,9 +13,11 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+import reactor.test.StepVerifier;
 
 import java.util.List;
-import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -32,38 +34,43 @@ public class AccountServiceTest {
     @InjectMocks
     private AccountServiceImpl accountService;
 
-    // Positive
     @Test
-    void shouldCreateAccountSuccessfully(){
+    void shouldCreateAccountSuccessfully() {
         AccountRequestDTO accountRequestDTO = new AccountRequestDTO("675e0e1259d6de4eda5b29b7");
         Account account = new Account("675e0e4a59d6de4eda5b29b8", "302638f2", 0.0, accountRequestDTO.getUserId());
 
         User mockUser = new User();
         mockUser.setId(accountRequestDTO.getUserId());
 
-        when(userRepository.findById(accountRequestDTO.getUserId())).thenReturn(Optional.of(mockUser));
-        when(accountRepository.save(any(Account.class))).thenReturn(account);
+        when(userRepository.findById(accountRequestDTO.getUserId())).thenReturn(Mono.just(mockUser));
+        when(accountRepository.save(any(Account.class))).thenReturn(Mono.just(account));
 
-        AccountResponseDTO response = accountService.create(accountRequestDTO);
-        assertNotNull(response);
-        assertEquals(accountRequestDTO.getUserId(), response.getUserId());
+        Mono<AccountResponseDTO> response = accountService.create(accountRequestDTO);
+
+        StepVerifier.create(response)
+                .assertNext(accountResponseDTO -> {
+                    assertNotNull(accountResponseDTO);
+                    assertEquals(accountRequestDTO.getUserId(), accountResponseDTO.getUserId());
+                })
+                .verifyComplete();
+
         verify(accountRepository, times(1)).save(any(Account.class));
         verify(userRepository, times(1)).findById(accountRequestDTO.getUserId());
     }
 
-    //Negative
     @Test
     void shouldThrowExceptionWhenUserNotFoundDuringAccountCreation() {
         String invalidUserId = "675e0e1259d6de4eda5b29b5";
         AccountRequestDTO accountRequestDTO = new AccountRequestDTO(invalidUserId);
 
-        when(userRepository.findById(invalidUserId)).thenReturn(Optional.empty());
+        when(userRepository.findById(invalidUserId)).thenReturn(Mono.empty());
 
-        NotFoundException exception = assertThrows(NotFoundException.class, () -> {
-            accountService.create(accountRequestDTO);
-        });
+        Mono<AccountResponseDTO> response = accountService.create(accountRequestDTO);
 
-        assertEquals("User not found", exception.getMessage());
+        StepVerifier.create(response)
+                .expectErrorMatches(ex -> ex instanceof NotFoundException && ex.getMessage().equals("User not found"))
+                .verify();
+
         verify(userRepository, times(1)).findById(invalidUserId);
         verify(accountRepository, never()).save(any(Account.class));
     }
@@ -77,14 +84,14 @@ public class AccountServiceTest {
                 new Account("675e0e4a59d6de4eda5b29b9", "87654321", 200.0, userId)
         );
 
-        when(accountRepository.findByUserId(userId)).thenReturn(accounts);
+        when(accountRepository.findByUserId(userId)).thenReturn(Flux.fromIterable(accounts));
 
-        List<AccountResponseDTO> response = accountService.getAllByUserId(userId);
+        Flux<AccountResponseDTO> response = accountService.getAllByUserId(userId);
 
-        assertNotNull(response);
-        assertEquals(2, response.size());
-        assertEquals("12345678", response.get(0).getAccountNumber());
-        assertEquals("87654321", response.get(1).getAccountNumber());
+        StepVerifier.create(response)
+                .expectNextMatches(accountResponseDTO -> "12345678".equals(accountResponseDTO.getAccountNumber()))
+                .expectNextMatches(accountResponseDTO -> "87654321".equals(accountResponseDTO.getAccountNumber()))
+                .verifyComplete();
 
         verify(accountRepository, times(1)).findByUserId(userId);
     }
@@ -98,12 +105,17 @@ public class AccountServiceTest {
                 100.0,
                 "675e0e1259d6de4eda5b29b7");
 
-        when(accountRepository.findByAccountNumber(accountNumber)).thenReturn(Optional.of(account));
+        when(accountRepository.findByAccountNumber(accountNumber)).thenReturn(Mono.just(account));
 
-        AccountResponseDTO response = accountService.findByAccountNumber(accountNumber);
+        Mono<AccountResponseDTO> response = accountService.findByAccountNumber(accountNumber);
 
-        assertNotNull(response);
-        assertEquals(accountNumber, response.getAccountNumber());
+        StepVerifier.create(response)
+                .assertNext(accountResponseDTO -> {
+                    assertNotNull(accountResponseDTO);
+                    assertEquals(accountNumber, accountResponseDTO.getAccountNumber());
+                })
+                .verifyComplete();
+
         verify(accountRepository, times(1)).findByAccountNumber(accountNumber);
     }
 
@@ -111,13 +123,14 @@ public class AccountServiceTest {
     void shouldThrowExceptionWhenAccountNotFoundByAccountNumber() {
         String accountNumber = "675e0e4a59d6de4eda5b29b3";
 
-        when(accountRepository.findByAccountNumber(accountNumber)).thenReturn(Optional.empty());
+        when(accountRepository.findByAccountNumber(accountNumber)).thenReturn(Mono.empty());
 
-        NotFoundException exception = assertThrows(NotFoundException.class, () -> {
-            accountService.findByAccountNumber(accountNumber);
-        });
+        Mono<AccountResponseDTO> response = accountService.findByAccountNumber(accountNumber);
 
-        assertEquals("Account not found", exception.getMessage());
+        StepVerifier.create(response)
+                .expectErrorMatches(ex -> ex instanceof NotFoundException && ex.getMessage().equals("Account not found"))
+                .verify();
+
         verify(accountRepository, times(1)).findByAccountNumber(accountNumber);
     }
 }

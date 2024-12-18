@@ -14,6 +14,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import reactor.core.publisher.Mono;
+import reactor.test.StepVerifier;
 
 import java.util.Optional;
 
@@ -32,15 +34,20 @@ public class UserServiceTest {
     void shouldRegisterUserSuccessfully() {
         UserRequestDTO userRequest = new UserRequestDTO("John Doe", "123456789");
         User user = new User("675e0e1259d6de4eda5b29b7", userRequest.getName(), userRequest.getDocumentId());
+        UserResponseDTO expectedResponse = new UserResponseDTO("675e0e1259d6de4eda5b29b7", "John Doe", "123456789");
 
-        when(userRepository.findByDocumentId(userRequest.getDocumentId())).thenReturn(Optional.empty());
-        when(userRepository.save(any(User.class))).thenReturn(user);
+        when(userRepository.findByDocumentId(userRequest.getDocumentId())).thenReturn(Mono.empty());
+        when(userRepository.save(any(User.class))).thenReturn(Mono.just(user));
 
-        UserResponseDTO response = userService.register(userRequest);
+        StepVerifier.create(userService.register(userRequest))
+                .assertNext(response -> {
+                    assertNotNull(response);
+                    assertEquals(expectedResponse.getId(), response.getId());
+                    assertEquals(expectedResponse.getName(), response.getName());
+                    assertEquals(expectedResponse.getDocumentId(), response.getDocumentId());
+                })
+                .verifyComplete();
 
-        assertNotNull(response);
-        assertEquals(userRequest.getName(), response.getName());
-        assertEquals(userRequest.getDocumentId(), response.getDocumentId());
         verify(userRepository, times(1)).findByDocumentId(userRequest.getDocumentId());
         verify(userRepository, times(1)).save(any(User.class));
     }
@@ -49,14 +56,15 @@ public class UserServiceTest {
     @Test
     void whenDocumentIdAlreadyExists_shouldThrowException() {
         UserRequestDTO userRequest = new UserRequestDTO("Jane Doe", "987654321");
-        when(userRepository.findByDocumentId(userRequest.getDocumentId())).thenReturn(Optional.of(new User()));
+        User existingUser = new User("123", "Jane Doe", "987654321");
 
-        BadRequestException exception = assertThrows(
-                BadRequestException.class,
-                () -> userService.register(userRequest)
-        );
+        when(userRepository.findByDocumentId(userRequest.getDocumentId())).thenReturn(Mono.just(existingUser));
 
-        assertEquals("Document ID already exists.", exception.getMessage());
+        StepVerifier.create(userService.register(userRequest))
+                .expectErrorMatches(ex -> ex instanceof BadRequestException &&
+                        ex.getMessage().equals("Document ID already exists."))
+                .verify();
+
         verify(userRepository, times(1)).findByDocumentId(userRequest.getDocumentId());
         verify(userRepository, never()).save(any(User.class));
     }

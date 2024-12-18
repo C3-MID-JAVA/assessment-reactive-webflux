@@ -18,12 +18,13 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
 import org.mockito.junit.jupiter.MockitoExtension;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+import reactor.test.StepVerifier;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -51,17 +52,16 @@ public class TransactionServiceTest {
 
     @BeforeEach
     void setUp() {
-        transactionService = new TransactionServiceImpl(transactionRepository,accountRepository, strategyFactory);
+        transactionService = new TransactionServiceImpl(transactionRepository, accountRepository, strategyFactory);
     }
 
     @Test
     void shouldCreateATMDepositTransactionSuccessfully() {
-        TransactionRequestDTO transactionRequest =
-                new TransactionRequestDTO(
-                        100.0,
-                        TransactionType.ATM_DEPOSIT,
-                        "12345678"
-                );
+        TransactionRequestDTO transactionRequest = new TransactionRequestDTO(
+                100.0,
+                TransactionType.ATM_DEPOSIT,
+                "12345678"
+        );
 
         Account account = new Account("675e0e4a59d6de4eda5b29b8", "12345678", 500.0, "675e0e1259d6de4eda5b29b7");
 
@@ -76,21 +76,24 @@ public class TransactionServiceTest {
         );
 
         when(accountRepository.findByAccountNumber(transactionRequest.getAccountNumber()))
-                .thenReturn(Optional.of(account));
+                .thenReturn(Mono.just(account));
         when(atmDepositStrategy.calculateFee()).thenReturn(2.0);
         when(atmDepositStrategy.calculateBalance(account.getBalance(), transactionRequest.getAmount()))
                 .thenReturn(598.0);
         when(strategyFactory.getStrategy(transactionRequest.getType())).thenReturn(atmDepositStrategy);
-        when(transactionRepository.save(any(Transaction.class))).thenReturn(savedTransaction);
+        when(transactionRepository.save(any(Transaction.class))).thenReturn(Mono.just(savedTransaction));
+        when(accountRepository.save(account)).thenReturn(Mono.just(account));
 
-        TransactionResponseDTO response = transactionService.create(transactionRequest);
+        Mono<TransactionResponseDTO> responseMono = transactionService.create(transactionRequest);
 
-        assertNotNull(response);
-        assertEquals(98.0, response.getNetAmount());
-        assertEquals(2.0, response.getFee());
-        assertEquals(TransactionType.ATM_DEPOSIT, response.getType());
-
-        assertEquals(598.0, account.getBalance());
+        StepVerifier.create(responseMono)
+                .assertNext(response -> {
+                    assertNotNull(response);
+                    assertEquals(98.0, response.getNetAmount());
+                    assertEquals(2.0, response.getFee());
+                    assertEquals(TransactionType.ATM_DEPOSIT, response.getType());
+                })
+                .verifyComplete();
 
         verify(accountRepository, times(1)).findByAccountNumber(transactionRequest.getAccountNumber());
         verify(strategyFactory, times(1)).getStrategy(TransactionType.ATM_DEPOSIT);
@@ -106,7 +109,7 @@ public class TransactionServiceTest {
                 50.0,
                 TransactionType.ATM_WITHDRAWAL,
                 "12345678"
-         );
+        );
 
         Account account = new Account("675e0e4a59d6de4eda5b29b8", "12345678", 500.0, "675e0e1259d6de4eda5b29b7");
 
@@ -121,21 +124,24 @@ public class TransactionServiceTest {
         );
 
         when(accountRepository.findByAccountNumber(transactionRequest.getAccountNumber()))
-                .thenReturn(Optional.of(account));
+                .thenReturn(Mono.just(account));
         when(atmWithdrawalStrategy.calculateFee()).thenReturn(1.0);
         when(atmWithdrawalStrategy.calculateBalance(account.getBalance(), transactionRequest.getAmount()))
                 .thenReturn(449.0);
         when(strategyFactory.getStrategy(transactionRequest.getType())).thenReturn(atmWithdrawalStrategy);
-        when(transactionRepository.save(any(Transaction.class))).thenReturn(savedTransaction);
+        when(transactionRepository.save(any(Transaction.class))).thenReturn(Mono.just(savedTransaction));
+        when(accountRepository.save(account)).thenReturn(Mono.just(account));
 
-        TransactionResponseDTO response = transactionService.create(transactionRequest);
+        Mono<TransactionResponseDTO> responseMono = transactionService.create(transactionRequest);
 
-        assertNotNull(response);
-        assertEquals(49.0, response.getNetAmount());
-        assertEquals(1.0, response.getFee());
-        assertEquals(TransactionType.ATM_WITHDRAWAL, response.getType());
-
-        assertEquals(449.0, account.getBalance());
+        StepVerifier.create(responseMono)
+                .assertNext(response -> {
+                    assertNotNull(response);
+                    assertEquals(49.0, response.getNetAmount());
+                    assertEquals(1.0, response.getFee());
+                    assertEquals(TransactionType.ATM_WITHDRAWAL, response.getType());
+                })
+                .verifyComplete();
 
         verify(accountRepository, times(1)).findByAccountNumber(transactionRequest.getAccountNumber());
         verify(strategyFactory, times(1)).getStrategy(TransactionType.ATM_WITHDRAWAL);
@@ -156,7 +162,7 @@ public class TransactionServiceTest {
         Account account = new Account("675e0e4a59d6de4eda5b29b8", "12345678", 500.0, "675e0e1259d6de4eda5b29b7");
 
         when(accountRepository.findByAccountNumber(transactionRequest.getAccountNumber()))
-                .thenReturn(Optional.of(account));
+                .thenReturn(Mono.just(account));
         when(strategyFactory.getStrategy(transactionRequest.getType()))
                 .thenReturn(atmWithdrawalStrategy);
         when(atmWithdrawalStrategy.calculateFee())
@@ -164,11 +170,11 @@ public class TransactionServiceTest {
         when(atmWithdrawalStrategy.calculateBalance(account.getBalance(), transactionRequest.getAmount()))
                 .thenThrow(new BadRequestException("Insufficient balance for this transaction."));
 
-        BadRequestException exception = assertThrows(BadRequestException.class, () -> {
-            transactionService.create(transactionRequest);
-        });
+        Mono<TransactionResponseDTO> responseMono = transactionService.create(transactionRequest);
 
-        assertEquals("Insufficient balance for this transaction.", exception.getMessage());
+        StepVerifier.create(responseMono)
+                .expectErrorMatches(ex -> ex instanceof BadRequestException && ex.getMessage().equals("Insufficient balance for this transaction."))
+                .verify();
 
         verify(accountRepository, times(1)).findByAccountNumber(transactionRequest.getAccountNumber());
         verify(strategyFactory, times(1)).getStrategy(TransactionType.ATM_WITHDRAWAL);
@@ -179,7 +185,7 @@ public class TransactionServiceTest {
     }
 
     @Test
-    void shouldReturnTransactionsListForAccountNumber(){
+    void shouldReturnTransactionsListForAccountNumber() {
         String accountNumber = "12345678";
 
         Account account = new Account("675e0e4a59d6de4eda5b29b8", "12345678", 500.0, "675e0e1259d6de4eda5b29b7");
@@ -205,15 +211,15 @@ public class TransactionServiceTest {
                 )
         );
 
-        when(accountRepository.findByAccountNumber(accountNumber)).thenReturn(Optional.of(account));
-        when(transactionRepository.findAllByAccountId(account.getId())).thenReturn(transactions);
+        when(accountRepository.findByAccountNumber(accountNumber)).thenReturn(Mono.just(account));
+        when(transactionRepository.findAllByAccountId(account.getId())).thenReturn(Flux.fromIterable(transactions));
 
-        List<TransactionResponseDTO> response = transactionService.getAllByAccountNumber(accountNumber);
+        Flux<TransactionResponseDTO> responseFlux = transactionService.getAllByAccountNumber(accountNumber);
 
-        assertNotNull(response);
-        assertEquals(2, response.size());
-        assertEquals("675e0ec661737976b43cca85", response.get(0).getId());
-        assertEquals("675e0ec661737976b43cca86", response.get(1).getId());
+        StepVerifier.create(responseFlux)
+                .assertNext(response -> assertEquals("675e0ec661737976b43cca85", response.getId()))
+                .assertNext(response -> assertEquals("675e0ec661737976b43cca86", response.getId()))
+                .verifyComplete();
 
         verify(accountRepository, times(1)).findByAccountNumber(accountNumber);
         verify(transactionRepository, times(1)).findAllByAccountId(account.getId());
@@ -223,13 +229,14 @@ public class TransactionServiceTest {
     void shouldThrowExceptionWhenAccountNotFoundByAccountNumber() {
         String accountNumber = "675e0e4a59d6de4eda5b29b3";
 
-        when(accountRepository.findByAccountNumber(accountNumber)).thenReturn(Optional.empty());
+        when(accountRepository.findByAccountNumber(accountNumber)).thenReturn(Mono.empty());
 
-        NotFoundException exception = assertThrows(NotFoundException.class, () -> {
-            transactionService.getAllByAccountNumber(accountNumber);
-        });
+        Flux<TransactionResponseDTO> responseMono = transactionService.getAllByAccountNumber(accountNumber);
 
-        assertEquals("Account not found", exception.getMessage());
+        StepVerifier.create(responseMono)
+                .expectErrorMatches(ex -> ex instanceof NotFoundException && ex.getMessage().equals("Account not found"))
+                .verify();
+
         verify(accountRepository, times(1)).findByAccountNumber(accountNumber);
     }
 }

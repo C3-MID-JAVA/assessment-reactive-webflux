@@ -4,10 +4,11 @@ import com.bankmanagement.bankmanagement.dto.UserRequestDTO;
 import com.bankmanagement.bankmanagement.dto.UserResponseDTO;
 import com.bankmanagement.bankmanagement.exception.BadRequestException;
 import com.bankmanagement.bankmanagement.mapper.UserMapper;
-import com.bankmanagement.bankmanagement.model.User;
 import com.bankmanagement.bankmanagement.repository.UserRepository;
 import com.bankmanagement.bankmanagement.service.UserService;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 @Service
 public class UserServiceImpl implements UserService {
@@ -19,11 +20,17 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserResponseDTO register(UserRequestDTO userRequestDTO) {
-        if (userRepository.findByDocumentId(userRequestDTO.getDocumentId()).isPresent()) {
-            throw new BadRequestException("Document ID already exists.");
-        }
-        User savedUser = userRepository.save(UserMapper.toEntity(userRequestDTO));
-        return UserMapper.fromEntity(savedUser);
+    public Mono<UserResponseDTO> register(UserRequestDTO userRequestDTO) {
+        return userRepository.findByDocumentId(userRequestDTO.getDocumentId())
+                .flatMap(existingUser -> Mono.error(new BadRequestException("Document ID already exists.")))
+                .then(Mono.defer(() ->
+                        userRepository.save(UserMapper.toEntity(userRequestDTO))
+                                .map(UserMapper::fromEntity)
+                ));
+    }
+
+    @Override
+    public Flux<UserResponseDTO> getAllUsers() {
+        return userRepository.findAll().map(UserMapper::fromEntity);
     }
 }

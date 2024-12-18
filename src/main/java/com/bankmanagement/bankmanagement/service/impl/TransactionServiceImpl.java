@@ -12,6 +12,8 @@ import com.bankmanagement.bankmanagement.service.TransactionService;
 import com.bankmanagement.bankmanagement.service.strategy.TransactionStrategy;
 import com.bankmanagement.bankmanagement.service.strategy.TransactionStrategyFactory;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -30,34 +32,39 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     @Override
-    public TransactionResponseDTO create(TransactionRequestDTO transactionRequestDTO) {
-        Account account = accountRepository.findByAccountNumber(transactionRequestDTO.getAccountNumber())
-                .orElseThrow(() -> new NotFoundException("Account not found"));
+    public Mono<TransactionResponseDTO> create(TransactionRequestDTO transactionRequestDTO) {
+        return accountRepository.findByAccountNumber(transactionRequestDTO.getAccountNumber())
+                .switchIfEmpty(Mono.error(new NotFoundException("Account not found")))
+                .flatMap(account -> {
+                    TransactionStrategy transactionStrategy = strategyFactory.getStrategy(transactionRequestDTO.getType());
+                    double fee = transactionStrategy.calculateFee();
+                    double balance = transactionStrategy.calculateBalance(account.getBalance(), transactionRequestDTO.getAmount());
+                    double netAmount = transactionRequestDTO.getAmount() - fee;
 
-        TransactionStrategy transactionStrategy = strategyFactory.getStrategy(transactionRequestDTO.getType());
-        double fee = transactionStrategy.calculateFee();
-        double balance = transactionStrategy.calculateBalance(account.getBalance(), transactionRequestDTO.getAmount());
-        double netAmount = transactionRequestDTO.getAmount() - fee;
+                    Transaction transaction = new Transaction();
+                    transaction.setAmount(transactionRequestDTO.getAmount());
+                    transaction.setFee(fee);
+                    transaction.setNetAmount(netAmount);
+                    transaction.setType(transactionRequestDTO.getType());
+                    transaction.setAccountId(account.getId());
+                    transaction.setTimestamp(LocalDateTime.now());
 
-        Transaction transaction = new Transaction();
-        transaction.setAmount(transactionRequestDTO.getAmount());
-        transaction.setFee(fee);
-        transaction.setNetAmount(netAmount);
-        transaction.setType(transactionRequestDTO.getType());
-        transaction.setAccountId(account.getId());
-        transaction.setTimestamp(LocalDateTime.now());
-        Transaction savedTransaction = transactionRepository.save(transaction);
-
-        account.setBalance(balance);
-        accountRepository.save(account);
-
-        return TransactionMapper.fromEntity(savedTransaction);
+                    return transactionRepository.save(transaction)
+                            .flatMap(savedTransaction -> {
+                                account.setBalance(balance);
+                                return accountRepository.save(account)
+                                        .thenReturn(TransactionMapper.fromEntity(savedTransaction));
+                            });
+                });
     }
 
     @Override
-    public List<TransactionResponseDTO> getAllByAccountNumber(String accountNumber) {
-        Account account = accountRepository.findByAccountNumber(accountNumber)
-                .orElseThrow(() -> new NotFoundException("Account not found"));
-        return transactionRepository.findAllByAccountId(account.getId()).stream().map(TransactionMapper::fromEntity).toList();
+    public Flux<TransactionResponseDTO> getAllByAccountNumber(String accountNumber) {
+        return accountRepository.findByAccountNumber(accountNumber)
+                .switchIfEmpty(Mono.error(new NotFoundException("Account not found")))
+                .flatMapMany(account -> {
+                    return transactionRepository.findAllByAccountId(account.getId())
+                            .map(TransactionMapper::fromEntity);
+                });
     }
 }

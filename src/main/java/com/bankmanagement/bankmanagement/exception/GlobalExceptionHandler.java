@@ -1,43 +1,75 @@
 package com.bankmanagement.bankmanagement.exception;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectWriter;
+import org.springframework.boot.web.reactive.error.ErrorWebExceptionHandler;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.validation.FieldError;
-import org.springframework.web.bind.MethodArgumentNotValidException;
-import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.http.MediaType;
+import org.springframework.http.server.reactive.ServerHttpResponse;
+import org.springframework.web.reactive.config.CorsRegistry;
+import org.springframework.web.reactive.config.WebFluxConfigurer;
+import org.springframework.web.server.ServerWebExchange;
+import reactor.core.publisher.Mono;
 
-import java.util.HashMap;
-import java.util.Map;
+@Configuration
+public class GlobalExceptionHandler implements ErrorWebExceptionHandler {
 
-@RestControllerAdvice
-public class GlobalExceptionHandler {
+    private final ObjectWriter objectWriter;
 
-    @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ErrorResponse> handleValidationExceptions(MethodArgumentNotValidException ex) {
-        Map<String, String> errors = new HashMap<>();
-        for (FieldError error : ex.getBindingResult().getFieldErrors()) {
-            errors.put(error.getField(), error.getDefaultMessage());
+    public GlobalExceptionHandler(ObjectMapper objectMapper) {
+        this.objectWriter = objectMapper.writer().withDefaultPrettyPrinter();
+    }
+
+    @Override
+    public Mono<Void> handle(ServerWebExchange exchange, Throwable ex) {
+        ServerHttpResponse response = exchange.getResponse();
+
+        HttpStatus status = determineHttpStatus(ex);
+        String errorMessage =
+                status == HttpStatus.INTERNAL_SERVER_ERROR ?
+                        "INTERNAL SERVER ERROR" : ex.getMessage();
+
+        ErrorResponse errorResponse = new ErrorResponse(status, errorMessage);
+
+        response.setStatusCode(status);
+        response.getHeaders().setContentType(MediaType.APPLICATION_JSON);
+
+        return response.writeWith(Mono.fromSupplier(() -> {
+            try {
+                byte[] bytes = objectWriter.writeValueAsBytes(errorResponse);
+                return response.bufferFactory().wrap(bytes);
+            } catch (JsonProcessingException e) {
+                return response.bufferFactory().wrap("{}".getBytes());
+            }
+        }));
+    }
+
+    private HttpStatus determineHttpStatus(Throwable ex) {
+        if (ex instanceof BadRequestException) {
+            return HttpStatus.BAD_REQUEST;
         }
-        ErrorResponse errorResponse = new ErrorResponse(HttpStatus.BAD_REQUEST, errors.toString());
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+        if (ex instanceof NotFoundException) {
+            return HttpStatus.NOT_FOUND;
+        }
+        if (ex instanceof ValidationException) {
+            return HttpStatus.BAD_REQUEST;
+        }
+        return HttpStatus.INTERNAL_SERVER_ERROR;
     }
 
-    @ExceptionHandler(NotFoundException.class)
-    public ResponseEntity<ErrorResponse> handleNotFoundException(NotFoundException ex) {
-        ErrorResponse errorResponse = new ErrorResponse(HttpStatus.NOT_FOUND, ex.getMessage());
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
-    }
-
-    @ExceptionHandler(BadRequestException.class)
-    public ResponseEntity<ErrorResponse> handleBadRequestException(BadRequestException ex) {
-        ErrorResponse errorResponse = new ErrorResponse(HttpStatus.BAD_REQUEST, ex.getMessage());
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
-    }
-
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<ErrorResponse> handleGeneralException(Exception ex) {
-        ErrorResponse errorResponse = new ErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, ex.getMessage());
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
+    @Bean
+    public WebFluxConfigurer corsConfigurer() {
+        return new WebFluxConfigurer() {
+            @Override
+            public void addCorsMappings(CorsRegistry registry) {
+                registry.addMapping("/**")
+                        .allowedOrigins("*")
+                        .allowedMethods("*")
+                        .allowedHeaders("*");
+            }
+        };
     }
 }

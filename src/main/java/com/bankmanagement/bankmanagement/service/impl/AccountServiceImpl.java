@@ -10,6 +10,8 @@ import com.bankmanagement.bankmanagement.repository.AccountRepository;
 import com.bankmanagement.bankmanagement.repository.UserRepository;
 import com.bankmanagement.bankmanagement.service.AccountService;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 import java.util.List;
 import java.util.Optional;
@@ -27,28 +29,29 @@ public class AccountServiceImpl implements AccountService {
     }
 
     @Override
-    public AccountResponseDTO create(AccountRequestDTO accountRequestDTO) {
-        User user = userRepository.findById(accountRequestDTO.getUserId())
-                .orElseThrow(() -> new NotFoundException("User not found"));
-
-        Account account = new Account();
-        account.setAccountNumber(UUID.randomUUID().toString().substring(0,8));
-        account.setBalance(0);
-        account.setUserId(user.getId());
-
-        accountRepository.save(account);
-
-        return AccountMapper.fromEntity(account);
+    public Mono<AccountResponseDTO> create(AccountRequestDTO accountRequestDTO) {
+        return userRepository.findById(accountRequestDTO.getUserId())
+                .switchIfEmpty(Mono.error(new NotFoundException("User not found")))
+                .flatMap(user -> {
+                    Account account = new Account();
+                    account.setAccountNumber(UUID.randomUUID().toString().substring(0, 8));
+                    account.setBalance(0);
+                    account.setUserId(user.getId());
+                    return accountRepository.save(account);
+                })
+                .map(AccountMapper::fromEntity);
     }
 
     @Override
-    public List<AccountResponseDTO> getAllByUserId(String userId){
-        return accountRepository.findByUserId(userId).stream().map(AccountMapper::fromEntity).toList();
+    public Flux<AccountResponseDTO> getAllByUserId(String userId){
+        return accountRepository.findByUserId(userId)
+                .map(AccountMapper::fromEntity);
     }
 
     @Override
-    public AccountResponseDTO findByAccountNumber(String accountNumber) {
-        Account account = accountRepository.findByAccountNumber(accountNumber).orElseThrow(() -> new NotFoundException("Account not found"));
-        return AccountMapper.fromEntity(account);
+    public Mono<AccountResponseDTO> findByAccountNumber(String accountNumber) {
+        return accountRepository.findByAccountNumber(accountNumber)
+                .switchIfEmpty(Mono.error(new NotFoundException("Account not found")))
+                .map(AccountMapper::fromEntity);
     }
 }
