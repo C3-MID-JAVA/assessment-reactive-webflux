@@ -3,6 +3,7 @@ package co.com.sofka.cuentabancaria.dto.cuenta;
 import co.com.sofka.cuentabancaria.model.Cuenta;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.math.BigDecimal;
@@ -10,6 +11,7 @@ import java.math.BigDecimal;
 @Getter
 @Setter
 @AllArgsConstructor
+@NoArgsConstructor
 public class CuentaResponseDTO {
 
     private String id;

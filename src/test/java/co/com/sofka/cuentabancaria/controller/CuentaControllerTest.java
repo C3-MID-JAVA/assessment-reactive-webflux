@@ -9,7 +9,11 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+import reactor.test.StepVerifier;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -36,11 +40,15 @@ public class CuentaControllerTest {
         CuentaRequestDTO requestDTO = new CuentaRequestDTO("1234567890", BigDecimal.valueOf(1000), "Anderson");
         CuentaResponseDTO responseDTO = new CuentaResponseDTO("1", "1234567890", BigDecimal.valueOf(1000), "Zambrano");
 
-        when(cuentaService.crearCuenta(requestDTO)).thenReturn(responseDTO);
-        ResponseEntity<CuentaResponseDTO> response = cuentaController.crearCuenta(requestDTO);
-        assertNotNull(response);
-        assertEquals(201, response.getStatusCode().value());
-        assertEquals(responseDTO, response.getBody());
+        when(cuentaService.crearCuenta(requestDTO)).thenReturn(Mono.just(responseDTO));
+        Mono<ResponseEntity<CuentaResponseDTO>> response = cuentaController.crearCuenta(requestDTO);
+        StepVerifier.create(response)
+                .assertNext(entity -> {
+                    assertNotNull(entity);
+                    assertEquals(HttpStatus.CREATED, entity.getStatusCode());
+                    assertEquals(responseDTO, entity.getBody());
+                })
+                .verifyComplete();
         verify(cuentaService, times(1)).crearCuenta(requestDTO);
     }
 
@@ -48,13 +56,13 @@ public class CuentaControllerTest {
     void testSaveCuentaDatosInvalidos() {
         CuentaRequestDTO requestDTO = new CuentaRequestDTO(null, BigDecimal.valueOf(-1000), null);
 
-        when(cuentaService.crearCuenta(requestDTO)).thenThrow(new IllegalArgumentException("Datos inválidos"));
+        when(cuentaService.crearCuenta(requestDTO)).thenReturn(Mono.error(new IllegalArgumentException("Datos inválidos")));
+        Mono<ResponseEntity<CuentaResponseDTO>> response = cuentaController.crearCuenta(requestDTO);
 
-        Exception exception = assertThrows(IllegalArgumentException.class, () -> {
-            cuentaController.crearCuenta(requestDTO);
-        });
-
-        assertEquals("Datos inválidos", exception.getMessage());
+        StepVerifier.create(response)
+                .expectErrorMatches(throwable -> throwable instanceof IllegalArgumentException &&
+                        throwable.getMessage().equals("Datos inválidos"))
+                .verify();
         verify(cuentaService, times(1)).crearCuenta(requestDTO);
     }
 
@@ -65,26 +73,34 @@ public class CuentaControllerTest {
                 new CuentaResponseDTO("2", "1234567891", BigDecimal.valueOf(2000), "Balseca")
         );
 
-        when(cuentaService.obtenerCuentas()).thenReturn(cuentasMock);
+        when(cuentaService.obtenerCuentas()).thenReturn(Flux.fromIterable(cuentasMock));
 
-        ResponseEntity<List<CuentaResponseDTO>> response = cuentaController.obtenerCuentas();
-
+        Mono<ResponseEntity<Flux<CuentaResponseDTO>>> response = cuentaController.obtenerCuentas();
+        /*
         assertNotNull(response);
         assertEquals(200, response.getStatusCode().value());
         assertEquals(cuentasMock, response.getBody());
+*/
+        StepVerifier.create(response.flatMapMany(ResponseEntity::getBody))
+                .expectNext(cuentasMock.get(0))
+                .expectNext(cuentasMock.get(1))
+                .verifyComplete();
+
         verify(cuentaService, times(1)).obtenerCuentas();
     }
 
     @Test
     void testConsultarSaldoCuentaInexistente() {
-        when(cuentaService.consultarSaldo("999")).thenThrow(new RuntimeException("Cuenta no encontrada"));
         PeticionByIdDTO peticion = new PeticionByIdDTO("999");
 
-        Exception exception = assertThrows(RuntimeException.class, () -> {
-            cuentaController.consultarSaldo(peticion);
-        });
+        when(cuentaService.consultarSaldo("999")).thenReturn(Mono.error(new RuntimeException("Cuenta no encontrada")) );
 
-        assertEquals("Cuenta no encontrada", exception.getMessage());
+        Mono<ResponseEntity<BigDecimal>> response = cuentaController.consultarSaldo(peticion);
+
+        StepVerifier.create(response)
+                .expectErrorMatches(throwable -> throwable instanceof RuntimeException &&
+                        throwable.getMessage().equals("Cuenta no encontrada"))
+                .verify();
         verify(cuentaService, times(1)).consultarSaldo("999");
     }
 
@@ -93,13 +109,17 @@ public class CuentaControllerTest {
         CuentaResponseDTO cuentaMock = new CuentaResponseDTO("1", "1234567890", BigDecimal.valueOf(1000), "Cristhian");
         PeticionByIdDTO peticion = new PeticionByIdDTO("1");
 
-        when(cuentaService.obtenerCuentaPorId("1")).thenReturn(cuentaMock);
+        when(cuentaService.obtenerCuentaPorId("1")).thenReturn(Mono.just(cuentaMock));
 
-        ResponseEntity<CuentaResponseDTO> response = cuentaController.obtenerCuentaPorId(peticion);
+        Mono<ResponseEntity<CuentaResponseDTO>> response = cuentaController.obtenerCuentaPorId(peticion);
 
-        assertNotNull(response);
-        assertEquals(200, response.getStatusCode().value());
-        assertEquals(cuentaMock, response.getBody());
+        StepVerifier.create(response)
+                        .assertNext(entity -> {
+                            assertNotNull(entity);
+                            assertEquals(HttpStatus.OK, entity.getStatusCode());
+                            assertEquals(cuentaMock, entity.getBody());
+                        });
+
         verify(cuentaService, times(1)).obtenerCuentaPorId("1");
     }
 
@@ -108,26 +128,33 @@ public class CuentaControllerTest {
         BigDecimal saldoMock = BigDecimal.valueOf(1500);
         PeticionByIdDTO peticion = new PeticionByIdDTO("1");
 
-        when(cuentaService.consultarSaldo("1")).thenReturn(saldoMock);
+        when(cuentaService.consultarSaldo("1")).thenReturn(Mono.just(saldoMock));
 
-        ResponseEntity<BigDecimal> response = cuentaController.consultarSaldo(peticion);
+        Mono<ResponseEntity<BigDecimal>> response  = cuentaController.consultarSaldo(peticion);
 
-        assertNotNull(response);
-        assertEquals(200, response.getStatusCode().value());
-        assertEquals(saldoMock, response.getBody());
+        StepVerifier.create(response)
+                        .assertNext(entity -> {
+                            assertNotNull(entity);
+                            assertEquals(HttpStatus.OK, entity.getStatusCode());
+                            assertEquals(saldoMock, entity.getBody());
+                        });
+
         verify(cuentaService, times(1)).consultarSaldo("1");
     }
 
     @Test
     void testObtenerCuentaPorIdInvalido() {
-        when(cuentaService.obtenerCuentaPorId("invalid_id")).thenThrow(new IllegalArgumentException("ID inválido"));
         PeticionByIdDTO peticion = new PeticionByIdDTO("invalid_id");
 
-        Exception exception = assertThrows(IllegalArgumentException.class, () -> {
-            cuentaController.obtenerCuentaPorId(peticion);
-        });
+        when(cuentaService.obtenerCuentaPorId("invalid_id")).thenReturn(Mono.error(new IllegalArgumentException("ID inválido")));
 
-        assertEquals("ID inválido", exception.getMessage());
+        Mono<ResponseEntity<CuentaResponseDTO>> response = cuentaController.obtenerCuentaPorId(peticion);
+
+        StepVerifier.create(response)
+                .expectErrorMatches(throwable -> throwable instanceof IllegalArgumentException &&
+                        throwable.getMessage().equals("ID inválido"))
+                .verify();
+
         verify(cuentaService, times(1)).obtenerCuentaPorId("invalid_id");
     }
 

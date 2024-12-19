@@ -9,8 +9,9 @@ import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
-import java.util.List;
 
 @RestController
 @RequestMapping("/transacciones")
@@ -23,28 +24,25 @@ public class TransaccionController {
     }
 
     @PostMapping("/depositos")
-    public ResponseEntity<TransaccionResponseDTO> realizarDeposito(@RequestBody @Valid TransaccionRequestDTO depositoRequestDTO) {
-
-        TransaccionResponseDTO deposito = transaccionService.realizarDeposito(depositoRequestDTO);
-        return ResponseEntity.status(HttpStatus.CREATED).body(deposito);
+    public Mono<ResponseEntity<TransaccionResponseDTO>> realizarDeposito(@Valid @RequestBody TransaccionRequestDTO depositoRequestDTO) {
+        return transaccionService.realizarDeposito(depositoRequestDTO)
+                .map(deposito -> ResponseEntity.status(HttpStatus.CREATED).body(deposito));
     }
 
     @GetMapping("/listar")
-    public ResponseEntity<List<TransaccionResponseDTO>> listarTransacciones() {
-        List<TransaccionResponseDTO> transacciones = transaccionService.obtenerTransacciones();
-        return ResponseEntity.status(HttpStatus.OK).body(transacciones);
+    public Mono<ResponseEntity<Flux<TransaccionResponseDTO>>> listarTransacciones() {
+        return Mono.just(ResponseEntity.status(HttpStatus.OK).body(transaccionService.obtenerTransacciones()));
     }
 
     @PostMapping("/retiro")
-    public ResponseEntity <TransaccionResponseDTO> realizarRetiro(@RequestBody @Valid TransaccionRequestDTO transaccionRequestDTO) {
-        TransaccionResponseDTO transaccion = transaccionService.realizarRetiro(transaccionRequestDTO);
-        return ResponseEntity.ok(transaccion);
+    public Mono<ResponseEntity<TransaccionResponseDTO>> realizarRetiro(@Valid @RequestBody TransaccionRequestDTO transaccionRequestDTO) {
+        return transaccionService.realizarRetiro(transaccionRequestDTO)
+                .map(retiro -> ResponseEntity.status(HttpStatus.OK).body(retiro));
     }
 
     @PostMapping("/cuenta/historialById")
-    public ResponseEntity<List<TransaccionResponseDTO>> obtenerHistorialPorCuenta(@RequestBody PeticionByIdDTO cuentaRequestDTO) {
-        List<TransaccionResponseDTO> transaccionResponseDTO = transaccionService.obtenerHistorialPorCuenta(cuentaRequestDTO.getCuentaId());
-        return ResponseEntity.ok(transaccionResponseDTO);
+    public Mono<ResponseEntity<Flux<TransaccionResponseDTO>>> obtenerHistorialPorCuenta(@RequestBody PeticionByIdDTO cuentaRequestDTO) {
+        return Mono.just(ResponseEntity.status(HttpStatus.OK).body(transaccionService.obtenerHistorialPorCuenta(cuentaRequestDTO.getCuentaId())));
     }
 
 }

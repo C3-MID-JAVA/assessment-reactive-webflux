@@ -42,5 +42,4 @@ public class TransaccionResponseDTO {
         this.numeroCuenta = numeroCuenta;
     }
 
-
 }

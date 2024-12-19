@@ -1,8 +1,5 @@
 package co.com.sofka.cuentabancaria.service;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
-
 import co.com.sofka.cuentabancaria.dto.cuenta.CuentaRequestDTO;
 import co.com.sofka.cuentabancaria.dto.cuenta.CuentaResponseDTO;
 import co.com.sofka.cuentabancaria.model.Cuenta;
@@ -10,9 +7,14 @@ import co.com.sofka.cuentabancaria.repository.CuentaRepository;
 import co.com.sofka.cuentabancaria.config.exceptions.ConflictException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import reactor.core.publisher.Mono;
+import reactor.test.StepVerifier;
+
 import java.math.BigDecimal;
 import java.util.NoSuchElementException;
-import java.util.Optional;
+import static org.junit.jupiter.api.Assertions.*;
+
+import static org.mockito.Mockito.*;
 
 public class CuentaServiceUnitTest {
 
@@ -27,72 +29,89 @@ public class CuentaServiceUnitTest {
 
     @Test
     void testCrearCuenta_Exitoso() {
-        CuentaRequestDTO requestDTO = new CuentaRequestDTO("0123456789", BigDecimal.valueOf(1000), "Juan Perez");
-        Cuenta cuenta = new Cuenta("675dbabe03edcf54111957fe","12345", BigDecimal.valueOf(1000), "Juan Perez");
+        CuentaRequestDTO requestDTO = new CuentaRequestDTO("12345", BigDecimal.valueOf(1000), "Juan Perez");
+        Cuenta cuenta = new Cuenta("675dbabe03edcf54111957fe", "12345", BigDecimal.valueOf(1000), "Juan Perez");
 
-        when(cuentaRepository.findByNumeroCuenta("12345")).thenReturn(Optional.empty());
-        when(cuentaRepository.save(any(Cuenta.class))).thenReturn(cuenta);
+        when(cuentaRepository.findByNumeroCuenta("12345")).thenReturn(Mono.empty());
+        when(cuentaRepository.save(any(Cuenta.class))).thenReturn(Mono.just(cuenta));
 
-        CuentaResponseDTO responseDTO = cuentaService.crearCuenta(requestDTO);
+        Mono<CuentaResponseDTO> resultado = cuentaService.crearCuenta(requestDTO);
 
-        assertEquals("12345", responseDTO.getNumeroCuenta());
-        assertEquals(BigDecimal.valueOf(1000), responseDTO.getSaldo());
+        StepVerifier.create(resultado)
+                .assertNext(responseDTO -> {
+                    assertEquals("12345", responseDTO.getNumeroCuenta());
+                    assertEquals(BigDecimal.valueOf(1000), responseDTO.getSaldo());
+                })
+                .verifyComplete();
+
         verify(cuentaRepository, times(1)).save(any(Cuenta.class));
     }
-
 
     @Test
     void testCrearCuenta_CuentaExistente() {
         CuentaRequestDTO cuentaRequestDTO = new CuentaRequestDTO("0123456789", BigDecimal.valueOf(1000), "Juan Perez");
 
-        when(cuentaRepository.findByNumeroCuenta(cuentaRequestDTO.getNumeroCuenta())).thenReturn(Optional.of(new Cuenta()));
+        when(cuentaRepository.findByNumeroCuenta(cuentaRequestDTO.getNumeroCuenta()))
+                .thenReturn(Mono.just(new Cuenta()));
 
-        ConflictException exception = assertThrows(ConflictException.class, () -> cuentaService.crearCuenta(cuentaRequestDTO));
-        assertEquals("El número de cuenta ya está registrado.", exception.getMessage());
+        Mono<CuentaResponseDTO> resultado = cuentaService.crearCuenta(cuentaRequestDTO);
+
+        StepVerifier.create(resultado)
+                .expectErrorMatches(throwable -> throwable instanceof ConflictException &&
+                        throwable.getMessage().equals("El número de cuenta ya está registrado."))
+                .verify();
     }
 
     @Test
     void testObtenerCuentaPorId_Exitoso() {
-        Cuenta cuenta = new Cuenta("675dbabe03edcf54111957fe","0123456789", BigDecimal.valueOf(1000), "Juan Perez");
+        Cuenta cuenta = new Cuenta("675dbabe03edcf54111957fe", "0123456789", BigDecimal.valueOf(1000), "Juan Perez");
 
-        when(cuentaRepository.findById("675dbabe03edcf54111957fe")).thenReturn(Optional.of(cuenta));
+        when(cuentaRepository.findById("675dbabe03edcf54111957fe")).thenReturn(Mono.just(cuenta));
 
-        CuentaResponseDTO responseDTO = cuentaService.obtenerCuentaPorId("675dbabe03edcf54111957fe");
+        Mono<CuentaResponseDTO> resultado = cuentaService.obtenerCuentaPorId("675dbabe03edcf54111957fe");
 
-        assertEquals("0123456789", responseDTO.getNumeroCuenta());
-        assertEquals("Juan Perez", responseDTO.getTitular());
+        StepVerifier.create(resultado)
+                .assertNext(responseDTO -> {
+                    assertEquals("0123456789", responseDTO.getNumeroCuenta());
+                    assertEquals("Juan Perez", responseDTO.getTitular());
+                })
+                .verifyComplete();
+
         verify(cuentaRepository, times(1)).findById("675dbabe03edcf54111957fe");
     }
 
-
     @Test
     void testObtenerCuentaPorId_NoExiste() {
-        when(cuentaRepository.findById("12345")).thenReturn(Optional.empty());
+        when(cuentaRepository.findById("12345")).thenReturn(Mono.empty());
 
-        NoSuchElementException thrown = assertThrows(NoSuchElementException.class, () -> {
-            cuentaService.obtenerCuentaPorId("12345");
-        });
+        Mono<CuentaResponseDTO> resultado = cuentaService.obtenerCuentaPorId("12345");
 
-        assertEquals("No se encontro el cuenta con id: 12345", thrown.getMessage());
+        StepVerifier.create(resultado)
+                .expectErrorMatches(throwable -> throwable instanceof NoSuchElementException &&
+                        throwable.getMessage().equals("No se encontro el cuenta con id: 12345"))
+                .verify();
     }
 
     @Test
     void testCrearCuenta_CuentaNueva() {
-        CuentaRequestDTO cuentaRequestDTO = new CuentaRequestDTO("123456", BigDecimal.valueOf(1000),"Juan Pérez");
+        CuentaRequestDTO cuentaRequestDTO = new CuentaRequestDTO("123456", BigDecimal.valueOf(1000), "Juan Pérez");
         Cuenta cuentaMock = new Cuenta();
         cuentaMock.setId("1");
         cuentaMock.setNumeroCuenta(cuentaRequestDTO.getNumeroCuenta());
         cuentaMock.setTitular(cuentaRequestDTO.getTitular());
         cuentaMock.setSaldo(cuentaRequestDTO.getSaldoInicial());
 
-        when(cuentaRepository.findByNumeroCuenta(cuentaRequestDTO.getNumeroCuenta())).thenReturn(Optional.empty());
-        when(cuentaRepository.save(any(Cuenta.class))).thenReturn(cuentaMock);
+        when(cuentaRepository.findByNumeroCuenta(cuentaRequestDTO.getNumeroCuenta())).thenReturn(Mono.empty());
+        when(cuentaRepository.save(any(Cuenta.class))).thenReturn(Mono.just(cuentaMock));
 
-        CuentaResponseDTO cuentaResponseDTO = cuentaService.crearCuenta(cuentaRequestDTO);
+        Mono<CuentaResponseDTO> resultado = cuentaService.crearCuenta(cuentaRequestDTO);
 
-        assertNotNull(cuentaResponseDTO);
-        assertEquals("1", cuentaResponseDTO.getId());
-        assertEquals("123456", cuentaResponseDTO.getNumeroCuenta());
+        StepVerifier.create(resultado)
+                .assertNext(cuentaResponseDTO -> {
+                    assertNotNull(cuentaResponseDTO);
+                    assertEquals("1", cuentaResponseDTO.getId());
+                    assertEquals("123456", cuentaResponseDTO.getNumeroCuenta());
+                })
+                .verifyComplete();
     }
-
 }

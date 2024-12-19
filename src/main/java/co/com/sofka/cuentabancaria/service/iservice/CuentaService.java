@@ -2,14 +2,14 @@ package co.com.sofka.cuentabancaria.service.iservice;
 
 import co.com.sofka.cuentabancaria.dto.cuenta.CuentaRequestDTO;
 import co.com.sofka.cuentabancaria.dto.cuenta.CuentaResponseDTO;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 import java.math.BigDecimal;
-import java.util.List;
 
 public interface CuentaService {
-    List<CuentaResponseDTO> obtenerCuentas();
-    CuentaResponseDTO crearCuenta(CuentaRequestDTO cuentaRequestDTO);
-    CuentaResponseDTO obtenerCuentaPorId(String id);
-    BigDecimal consultarSaldo(String id);
-
+    Flux<CuentaResponseDTO> obtenerCuentas(); // Devuelve un flujo de cuentas
+    Mono<CuentaResponseDTO> crearCuenta(CuentaRequestDTO cuentaRequestDTO); // Devuelve una cuenta creada
+    Mono<CuentaResponseDTO> obtenerCuentaPorId(String id); // Devuelve una cuenta específica
+    Mono<BigDecimal> consultarSaldo(String id); // Devuelve el saldo como un Mono
 }

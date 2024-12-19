@@ -7,11 +7,11 @@ import co.com.sofka.cuentabancaria.model.Cuenta;
 import co.com.sofka.cuentabancaria.repository.CuentaRepository;
 import co.com.sofka.cuentabancaria.service.iservice.CuentaService;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 import java.math.BigDecimal;
-import java.util.List;
 import java.util.NoSuchElementException;
-import java.util.stream.Collectors;
 
 @Service
 public class CuentaServiceImpl  implements CuentaService {
@@ -23,43 +23,38 @@ public class CuentaServiceImpl  implements CuentaService {
     }
 
     @Override
-    public List<CuentaResponseDTO> obtenerCuentas() {
-        List<Cuenta> cuentas = cuentaRepository.findAll();
-
-        List<CuentaResponseDTO> cuentasDTO = cuentas.stream().map(c -> new CuentaResponseDTO(c)).collect(Collectors.toList());
-        return cuentasDTO;
+    public Flux<CuentaResponseDTO> obtenerCuentas() {
+        return cuentaRepository.findAll()
+                .map(CuentaResponseDTO::new);
     }
 
     @Override
-    public CuentaResponseDTO crearCuenta(CuentaRequestDTO cuentaRequestDTO) {
-        if (cuentaRepository.findByNumeroCuenta(cuentaRequestDTO.getNumeroCuenta()).isPresent()) {
-            throw new ConflictException("El número de cuenta ya está registrado.");
-        }
+    public Mono<CuentaResponseDTO> crearCuenta(CuentaRequestDTO cuentaRequestDTO) {
+        return cuentaRepository.findByNumeroCuenta(cuentaRequestDTO.getNumeroCuenta())
+                .flatMap(existingCuenta ->
+                        Mono.<Cuenta>error(new ConflictException("El número de cuenta ya está registrado.")))
+                .switchIfEmpty(Mono.defer(() -> {
+                    Cuenta nuevaCuenta = new Cuenta();
+                    nuevaCuenta.setNumeroCuenta(cuentaRequestDTO.getNumeroCuenta());
+                    nuevaCuenta.setSaldo(cuentaRequestDTO.getSaldoInicial());
+                    nuevaCuenta.setTitular(cuentaRequestDTO.getTitular());
 
-        Cuenta nuevaCuenta = new Cuenta();
-        nuevaCuenta.setNumeroCuenta(cuentaRequestDTO.getNumeroCuenta());
-        nuevaCuenta.setSaldo(cuentaRequestDTO.getSaldoInicial());
-        nuevaCuenta.setTitular(cuentaRequestDTO.getTitular());
-
-        Cuenta cuenta = cuentaRepository.save(nuevaCuenta);
-
-        return new CuentaResponseDTO(cuenta);
+                    return cuentaRepository.save(nuevaCuenta); // Devuelve Mono<Cuenta>
+                }))
+                .map(CuentaResponseDTO::new); // Mapea Cuenta a CuentaResponseDTO
     }
 
     @Override
-    public CuentaResponseDTO obtenerCuentaPorId(String id) {
-
-        Cuenta cuenta = cuentaRepository.findById(id).orElseThrow(
-                () -> new NoSuchElementException("No se encontro el cuenta con id: " + id)
-        );
-        return new CuentaResponseDTO(cuenta);
+    public Mono<CuentaResponseDTO> obtenerCuentaPorId(String id) {
+        return cuentaRepository.findById(id)
+                .switchIfEmpty(Mono.error(new NoSuchElementException("No se encontro el cuenta con id: " + id)))
+                .map(CuentaResponseDTO::new);
     }
 
     @Override
-    public BigDecimal consultarSaldo(String id) {
-        Cuenta cuenta = cuentaRepository.findById(id).orElseThrow(
-                () -> new NoSuchElementException("No se encontro el cuenta con id: " + id)
-        );
-        return cuenta.getSaldo();
+    public Mono<BigDecimal> consultarSaldo(String id) {
+        return cuentaRepository.findById(id)
+                .switchIfEmpty(Mono.error(new NoSuchElementException("No se encontro el cuenta con id: " + id)))
+                .map(Cuenta::getSaldo);
     }
 }

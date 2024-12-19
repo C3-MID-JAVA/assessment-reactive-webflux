@@ -1,13 +1,15 @@
 package co.com.sofka.cuentabancaria.repository;
 
+import co.com.sofka.cuentabancaria.dto.transaccion.TransaccionResponseDTO;
 import co.com.sofka.cuentabancaria.model.Transaccion;
-import org.springframework.data.mongodb.repository.MongoRepository;
+import org.springframework.data.mongodb.repository.ReactiveMongoRepository;
 import org.springframework.stereotype.Repository;
-
-import java.util.List;
+import reactor.core.publisher.Flux;
 
 @Repository
-public interface TransaccionRepository extends MongoRepository<Transaccion, String> {
+public interface TransaccionRepository extends ReactiveMongoRepository<Transaccion, String> {
 
-    List<Transaccion> findByCuentaId(String cuentaId);
+    Flux<Transaccion> findByCuentaId(String cuentaId);
+
+    Flux<Transaccion> findAllByCuentaId(String number);
 }
