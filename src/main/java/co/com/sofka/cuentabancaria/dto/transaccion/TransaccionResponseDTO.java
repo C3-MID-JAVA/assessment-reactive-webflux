@@ -42,4 +42,6 @@ public class TransaccionResponseDTO {
         this.numeroCuenta = numeroCuenta;
     }
 
+    public TransaccionResponseDTO(Transaccion transaccion) {
+    }
 }

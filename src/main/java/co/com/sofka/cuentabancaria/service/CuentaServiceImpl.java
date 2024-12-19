@@ -3,6 +3,7 @@ package co.com.sofka.cuentabancaria.service;
 import co.com.sofka.cuentabancaria.config.exceptions.ConflictException;
 import co.com.sofka.cuentabancaria.dto.cuenta.CuentaRequestDTO;
 import co.com.sofka.cuentabancaria.dto.cuenta.CuentaResponseDTO;
+import co.com.sofka.cuentabancaria.mapper.Mapper;
 import co.com.sofka.cuentabancaria.model.Cuenta;
 import co.com.sofka.cuentabancaria.repository.CuentaRepository;
 import co.com.sofka.cuentabancaria.service.iservice.CuentaService;
@@ -17,6 +18,8 @@ import java.util.NoSuchElementException;
 public class CuentaServiceImpl  implements CuentaService {
 
     private final CuentaRepository cuentaRepository;
+    private final Mapper <Cuenta, CuentaResponseDTO> cuentaToDTOMapper = CuentaResponseDTO ::new;
+
 
     public CuentaServiceImpl(CuentaRepository cuentaRepository) {
         this.cuentaRepository = cuentaRepository;
@@ -25,7 +28,7 @@ public class CuentaServiceImpl  implements CuentaService {
     @Override
     public Flux<CuentaResponseDTO> obtenerCuentas() {
         return cuentaRepository.findAll()
-                .map(CuentaResponseDTO::new);
+                .map(cuentaToDTOMapper::map);
     }
 
     @Override
@@ -39,16 +42,16 @@ public class CuentaServiceImpl  implements CuentaService {
                     nuevaCuenta.setSaldo(cuentaRequestDTO.getSaldoInicial());
                     nuevaCuenta.setTitular(cuentaRequestDTO.getTitular());
 
-                    return cuentaRepository.save(nuevaCuenta); // Devuelve Mono<Cuenta>
+                    return cuentaRepository.save(nuevaCuenta);
                 }))
-                .map(CuentaResponseDTO::new); // Mapea Cuenta a CuentaResponseDTO
+                .map(CuentaResponseDTO::new);
     }
 
     @Override
     public Mono<CuentaResponseDTO> obtenerCuentaPorId(String id) {
         return cuentaRepository.findById(id)
                 .switchIfEmpty(Mono.error(new NoSuchElementException("No se encontro el cuenta con id: " + id)))
-                .map(CuentaResponseDTO::new);
+                .map(cuentaToDTOMapper::map);
     }
 
     @Override

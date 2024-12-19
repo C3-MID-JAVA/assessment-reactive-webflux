@@ -14,6 +14,7 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.math.BigDecimal;
+import java.util.NoSuchElementException;
 
 @RestController
 @RequestMapping("/cuentas")
@@ -28,10 +29,13 @@ public class CuentaController {
 
     @PostMapping
     public Mono<ResponseEntity<CuentaResponseDTO>> crearCuenta(@Valid @RequestBody CuentaRequestDTO cuentaRequestDTO) {
-
         return cuentaService.crearCuenta(cuentaRequestDTO)
-                .map(cuentaResponseDTO -> ResponseEntity.status(HttpStatus.CREATED).body(cuentaResponseDTO));
+                .map(cuentaResponseDTO -> ResponseEntity.status(HttpStatus.CREATED).body(cuentaResponseDTO))
+                .onErrorResume(ConflictException.class, ex ->
+                        Mono.error(new ConflictException("El número de cuenta ya está registrado."))
+                );
     }
+
 
     @GetMapping("/listar")
     public Mono<ResponseEntity<Flux<CuentaResponseDTO>>> obtenerCuentas() {
@@ -41,14 +45,15 @@ public class CuentaController {
 
     @PostMapping("/listarById")
     public Mono<ResponseEntity<CuentaResponseDTO>> obtenerCuentaPorId(@RequestBody PeticionByIdDTO cuentaRequestDTO) {
-
         return cuentaService.obtenerCuentaPorId(cuentaRequestDTO.getCuentaId())
-                .map(cuentaResponseDTO -> ResponseEntity.status(HttpStatus.OK).body(cuentaResponseDTO));
+                .map(cuentaResponseDTO -> ResponseEntity.status(HttpStatus.OK).body(cuentaResponseDTO))
+                .switchIfEmpty(Mono.error(new NoSuchElementException("La cuenta con el ID proporcionado no existe.")));
     }
 
     @PostMapping("/listar/saldoById")
     public Mono<ResponseEntity<BigDecimal>> consultarSaldo(@RequestBody PeticionByIdDTO cuentaRequestDTO) {
         return cuentaService.consultarSaldo(cuentaRequestDTO.getCuentaId())
-                .map(saldo -> ResponseEntity.status(HttpStatus.OK).body(saldo));
+                .map(saldo -> ResponseEntity.status(HttpStatus.OK).body(saldo))
+                .switchIfEmpty(Mono.error(new NoSuchElementException("El saldo de la cuenta no se pudo encontrar.")));
     }
 }

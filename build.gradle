@@ -32,7 +32,6 @@ dependencies {
     testImplementation group: 'org.mockito', name: 'mockito-core', version: '5.14.2'
     testImplementation group: 'io.projectreactor', name: 'reactor-test', version: '3.7.1'
 
-
     implementation group: 'org.springframework.boot', name: 'spring-boot-starter-logging', version: '3.4.0'
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation group: 'jakarta.validation', name: 'jakarta.validation-api', version: '3.1.0'
