@@ -28,6 +28,7 @@ public class Account {
         this.cardId = cardId;
     }
 
+
     public String getId() {
         return id;
     }

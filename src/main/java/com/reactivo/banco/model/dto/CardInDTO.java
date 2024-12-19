@@ -4,12 +4,23 @@ public class CardInDTO {
 
     private String cardNumber;
     private String type;
+    private String accountId;
 
-    public CardInDTO() {}
+    public CardInDTO() {
+    }
 
-    public CardInDTO(String cardNumber, String type) {
+    public CardInDTO(String cardNumber, String type, String accountId) {
         this.cardNumber = cardNumber;
         this.type = type;
+        this.accountId = accountId;
+    }
+
+    public String getAccountId() {
+        return accountId;
+    }
+
+    public void setAccountId(String accountId) {
+        this.accountId = accountId;
     }
 
     public String getCardNumber() {

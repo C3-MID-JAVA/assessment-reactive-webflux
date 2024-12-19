@@ -8,13 +8,10 @@ import com.reactivo.banco.model.dto.ClientOutDTO;
 import com.reactivo.banco.model.entity.Client;
 import com.reactivo.banco.repository.ClientRepository;
 import com.reactivo.banco.service.ClientService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 public class ClientImplService implements ClientService {
@@ -64,7 +61,7 @@ public class ClientImplService implements ClientService {
         return clientRepository.existsById(id)
                 .flatMap(exists -> {
                     if (!exists) {
-                        return Mono.error(new ResourceNotFoundException("Cliente no encontrado con ID: " + id));  // Error si no existe
+                        return Mono.error(new ResourceNotFoundException("Cliente no encontrado con ID: " + id));
                     }
                     return clientRepository.deleteById(id);
                 });

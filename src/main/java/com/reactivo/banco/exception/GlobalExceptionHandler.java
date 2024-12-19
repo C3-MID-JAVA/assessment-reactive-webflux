@@ -10,8 +10,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindException;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import reactor.core.publisher.Mono;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -20,64 +22,40 @@ import java.util.Map;
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(ConstraintViolationException.class)
-    @ApiResponses(value = {
-            @ApiResponse(
-                    responseCode = "400",
-                    description = "Errores de validación detectados",
-                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = Map.class))
-            )
-    })
-    public ResponseEntity<Map<String, Object>> handleValidationException(ConstraintViolationException ex) {
+    public Mono<ResponseEntity<Map<String, Object>>> handleConstraintViolationException(ConstraintViolationException ex) {
         Map<String, Object> response = new HashMap<>();
-        response.put("status", "error");
-        response.put("message", "Errores de validación");
+        response.put("status", HttpStatus.BAD_REQUEST.value());
+        response.put("message", "Validation errors detected");
 
         Map<String, String> fieldErrors = new HashMap<>();
-        ex.getConstraintViolations().forEach(violation -> {
-            fieldErrors.put(violation.getPropertyPath().toString(), violation.getMessage());
-        });
+        ex.getConstraintViolations().forEach(violation ->
+                fieldErrors.put(violation.getPropertyPath().toString(), violation.getMessage())
+        );
 
         response.put("errors", fieldErrors);
-
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+        return Mono.just(ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response));
     }
 
-    @ExceptionHandler(BindException.class)
-    @ApiResponses(value = {
-            @ApiResponse(
-                    responseCode = "400",
-                    description = "Errores de validación de campos detectados",
-                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = Map.class))
-            )
-    })
-    public ResponseEntity<Map<String, Object>> handleBindException(BindingResult bindingResult) {
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public Mono<ResponseEntity<Map<String, Object>>> handleMethodArgumentNotValidException(MethodArgumentNotValidException ex) {
         Map<String, Object> response = new HashMap<>();
-        response.put("status", "error");
-        response.put("message", "Errores de validación");
+        response.put("status", HttpStatus.BAD_REQUEST.value());
+        response.put("message", "Validation errors detected");
 
         Map<String, String> fieldErrors = new HashMap<>();
-        for (FieldError error : bindingResult.getFieldErrors()) {
+        for (FieldError error : ex.getBindingResult().getFieldErrors()) {
             fieldErrors.put(error.getField(), error.getDefaultMessage());
         }
 
         response.put("errors", fieldErrors);
-
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+        return Mono.just(ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response));
     }
 
-
     @ExceptionHandler(ResourceNotFoundException.class)
-    @ApiResponses(value = {
-            @ApiResponse(
-                    responseCode = "404",
-                    description = "Recurso no encontrado",
-                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = Map.class))
-            )
-    })
-    public ResponseEntity<Map<String, Object>> manejarRecursoNoEncontrado(ResourceNotFoundException ex) {
-        Map<String, Object> respuesta = new HashMap<>();
-        respuesta.put("estado", "alerta");
-        respuesta.put("mensaje", ex.getMessage());
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(respuesta);
+    public Mono<ResponseEntity<Map<String, Object>>> handleResourceNotFoundException(ResourceNotFoundException ex) {
+        Map<String, Object> response = new HashMap<>();
+        response.put("status", HttpStatus.NOT_FOUND.value());
+        response.put("message", ex.getMessage());
+        return Mono.just(ResponseEntity.status(HttpStatus.NOT_FOUND).body(response));
     }
 }

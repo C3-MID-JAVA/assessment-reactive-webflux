@@ -8,12 +8,13 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @RestController
-@RequestMapping("/v1/api/clientes")
+@RequestMapping("/v1/api/clients")
 @Tag(name = "Clients", description = "Endpoints for client management")
 public class ClientController {
 
@@ -30,8 +31,8 @@ public class ClientController {
             @ApiResponse(responseCode = "400", description = "Invalid request")
     })
     @PostMapping
-    public Mono<ClientOutDTO> saveClient(@Valid @RequestBody ClientInDTO clientInDTO) {
-        return clientService.saveClient(clientInDTO);
+    public ResponseEntity<Mono<ClientOutDTO>> saveClient(@Valid @RequestBody ClientInDTO clientInDTO) {
+        return ResponseEntity.ok(clientService.saveClient(clientInDTO));
     }
 
     @Operation(summary = "Retrieve the list of all clients",
@@ -40,8 +41,8 @@ public class ClientController {
             @ApiResponse(responseCode = "200", description = "List of clients retrieved successfully")
     })
     @GetMapping
-    public Flux<ClientOutDTO> getAll() {
-        return clientService.getAll();
+    public ResponseEntity<Flux<ClientOutDTO>> getAll() {
+        return ResponseEntity.ok(clientService.getAll());
     }
 
     @Operation(summary = "Retrieve client by ID",
@@ -51,8 +52,8 @@ public class ClientController {
             @ApiResponse(responseCode = "404", description = "Client not found")
     })
     @GetMapping("/{id}")
-    public Mono<ClientOutDTO> getById(@PathVariable String id) {
-        return clientService.getById(id);
+    public ResponseEntity<Mono<ClientOutDTO>> getById(@PathVariable String id) {
+        return ResponseEntity.ok(clientService.getById(id));
     }
 
     @Operation(summary = "Update an existing client",
@@ -63,8 +64,8 @@ public class ClientController {
             @ApiResponse(responseCode = "400", description = "Invalid request")
     })
     @PutMapping("/{id}")
-    public Mono<ClientOutDTO> updateClient(@PathVariable String id, @Valid @RequestBody ClientInDTO clientInDTO) {
-        return clientService.updateClient(id, clientInDTO);
+    public ResponseEntity<Mono<ClientOutDTO>> updateClient(@PathVariable String id, @Valid @RequestBody ClientInDTO clientInDTO) {
+        return  ResponseEntity.ok(clientService.updateClient(id, clientInDTO));
     }
 
     @Operation(summary = "Delete a client",
@@ -74,7 +75,8 @@ public class ClientController {
             @ApiResponse(responseCode = "404", description = "Client not found")
     })
     @DeleteMapping("/{id}")
-    public Mono<Void> deleteClient(@PathVariable String id) {
-        return clientService.deleteClient(id);
+    public ResponseEntity<Mono<Void>> deleteClient(@PathVariable String id) {
+        clientService.deleteClient(id);
+        return ResponseEntity.noContent().build();
     }
 }
