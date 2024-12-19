@@ -1,11 +1,21 @@
 package com.reactivo.banco.model.dto;
 
+import jakarta.validation.constraints.NotNull;
+
 import java.math.BigDecimal;
 
 public class AccountInDTO {
+
+    @NotNull
     private String accountNumber;
+
+    @NotNull
     private BigDecimal balance;
+
+    @NotNull
     private String custumerId;
+
+    @NotNull
     private String cardId;
 
     public AccountInDTO() {
