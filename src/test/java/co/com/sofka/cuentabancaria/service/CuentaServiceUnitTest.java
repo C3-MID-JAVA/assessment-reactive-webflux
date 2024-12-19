@@ -29,17 +29,17 @@ public class CuentaServiceUnitTest {
 
     @Test
     void testCrearCuenta_Exitoso() {
-        CuentaRequestDTO requestDTO = new CuentaRequestDTO("12345", BigDecimal.valueOf(1000), "Juan Perez");
-        Cuenta cuenta = new Cuenta("675dbabe03edcf54111957fe", "12345", BigDecimal.valueOf(1000), "Juan Perez");
+        CuentaRequestDTO requestDTO = new CuentaRequestDTO("1234567890", BigDecimal.valueOf(1000), "Juan Perez");
+        Cuenta cuenta = new Cuenta("675dbabe03edcf54111957fe", "1234567890", BigDecimal.valueOf(1000), "Juan Perez");
 
-        when(cuentaRepository.findByNumeroCuenta("12345")).thenReturn(Mono.empty());
+        when(cuentaRepository.findByNumeroCuenta("1234567890")).thenReturn(Mono.empty());
         when(cuentaRepository.save(any(Cuenta.class))).thenReturn(Mono.just(cuenta));
 
         Mono<CuentaResponseDTO> resultado = cuentaService.crearCuenta(requestDTO);
 
         StepVerifier.create(resultado)
                 .assertNext(responseDTO -> {
-                    assertEquals("12345", responseDTO.getNumeroCuenta());
+                    assertEquals("1234567890", responseDTO.getNumeroCuenta());
                     assertEquals(BigDecimal.valueOf(1000), responseDTO.getSaldo());
                 })
                 .verifyComplete();
@@ -82,13 +82,13 @@ public class CuentaServiceUnitTest {
 
     @Test
     void testObtenerCuentaPorId_NoExiste() {
-        when(cuentaRepository.findById("12345")).thenReturn(Mono.empty());
+        when(cuentaRepository.findById("1234567890")).thenReturn(Mono.empty());
 
-        Mono<CuentaResponseDTO> resultado = cuentaService.obtenerCuentaPorId("12345");
+        Mono<CuentaResponseDTO> resultado = cuentaService.obtenerCuentaPorId("1234567890");
 
         StepVerifier.create(resultado)
                 .expectErrorMatches(throwable -> throwable instanceof NoSuchElementException &&
-                        throwable.getMessage().equals("No se encontro el cuenta con id: 12345"))
+                        throwable.getMessage().equals("No se encontro el cuenta con id: 1234567890"))
                 .verify();
     }
 

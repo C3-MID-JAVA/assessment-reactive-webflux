@@ -40,10 +40,10 @@ public class TransaccionServiceUnitTest {
 
     @Test
     void testRealizarDeposito_Exitoso() {
-        TransaccionRequestDTO depositoRequestDTO = new TransaccionRequestDTO("12345", BigDecimal.valueOf(1000), DEPOSITO_CAJERO);
+        TransaccionRequestDTO depositoRequestDTO = new TransaccionRequestDTO("1234567890", BigDecimal.valueOf(1000), DEPOSITO_CAJERO);
 
-        Cuenta cuenta = new Cuenta("12345", BigDecimal.valueOf(2000), "Juan Perez");
-        when(cuentaRepository.findByNumeroCuenta("12345")).thenReturn(Mono.just(cuenta));
+        Cuenta cuenta = new Cuenta("1234567890", BigDecimal.valueOf(2000), "Juan Perez");
+        when(cuentaRepository.findByNumeroCuenta("1234567890")).thenReturn(Mono.just(cuenta));
         when(cuentaRepository.save(any(Cuenta.class))).thenReturn(Mono.just(cuenta));
 
         TransaccionStrategy strategy = mock(TransaccionStrategy.class);
@@ -101,9 +101,9 @@ public class TransaccionServiceUnitTest {
 
     @Test
     void testRealizarDeposito_CuentaNoExiste() {
-        TransaccionRequestDTO depositoRequestDTO = new TransaccionRequestDTO("12345", BigDecimal.valueOf(1000), DEPOSITO_CAJERO);
+        TransaccionRequestDTO depositoRequestDTO = new TransaccionRequestDTO("1234567890", BigDecimal.valueOf(1000), DEPOSITO_CAJERO);
 
-        when(cuentaRepository.findByNumeroCuenta("12345")).thenReturn(Mono.empty()); // Mono.empty para cuenta no encontrada
+        when(cuentaRepository.findByNumeroCuenta("1234567890")).thenReturn(Mono.empty()); // Mono.empty para cuenta no encontrada
 
         Mono<TransaccionResponseDTO> responseMono = transaccionService.realizarDeposito(depositoRequestDTO);
 
@@ -114,10 +114,10 @@ public class TransaccionServiceUnitTest {
 
     @Test
     void testRealizarRetiro_SaldoInsuficiente() {
-        TransaccionRequestDTO retiroRequestDTO = new TransaccionRequestDTO("12345", BigDecimal.valueOf(1000), RETIRO_CAJERO);
+        TransaccionRequestDTO retiroRequestDTO = new TransaccionRequestDTO("1234567890", BigDecimal.valueOf(1000), RETIRO_CAJERO);
 
-        Cuenta cuenta = new Cuenta("12345", BigDecimal.valueOf(500), "Juan Perez");
-        when(cuentaRepository.findByNumeroCuenta("12345")).thenReturn(Mono.just(cuenta));
+        Cuenta cuenta = new Cuenta("1234567890", BigDecimal.valueOf(500), "Juan Perez");
+        when(cuentaRepository.findByNumeroCuenta("1234567890")).thenReturn(Mono.just(cuenta));
 
         TransaccionStrategy strategy = mock(TransaccionStrategy.class);
         when(strategy.getCosto()).thenReturn(BigDecimal.valueOf(50));

@@ -1,5 +1,6 @@
 package co.com.sofka.cuentabancaria.service;
 
+import co.com.sofka.cuentabancaria.config.exceptions.ConflictException;
 import co.com.sofka.cuentabancaria.dto.transaccion.TransaccionRequestDTO;
 import co.com.sofka.cuentabancaria.dto.transaccion.TransaccionResponseDTO;
 import co.com.sofka.cuentabancaria.model.Cuenta;
@@ -7,13 +8,8 @@ import co.com.sofka.cuentabancaria.model.Transaccion;
 import co.com.sofka.cuentabancaria.model.enums.TipoTransaccion;
 import co.com.sofka.cuentabancaria.repository.CuentaRepository;
 import co.com.sofka.cuentabancaria.repository.TransaccionRepository;
-import co.com.sofka.cuentabancaria.service.strategy.TransaccionStrategy;
-import co.com.sofka.cuentabancaria.service.strategy.TransaccionStrategyFactory;
-import co.com.sofka.cuentabancaria.service.strategy.enums.TipoOperacion;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import reactor.core.publisher.Flux;
@@ -21,132 +17,145 @@ import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.time.LocalDateTime;
-import java.util.List;
-import static org.mockito.Mockito.*;
+import java.util.NoSuchElementException;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
 public class TransaccionServiceIntegrationTest {
 
-
+    @Autowired
     private TransaccionServiceImpl transaccionService;
+
+    @Autowired
     private CuentaRepository cuentaRepository;
+
+    @Autowired
     private TransaccionRepository transaccionRepository;
-    private TransaccionStrategyFactory strategyFactory;
 
     @BeforeEach
     void setUp() {
-        cuentaRepository = mock(CuentaRepository.class);
-        transaccionRepository = mock(TransaccionRepository.class);
-        strategyFactory = mock(TransaccionStrategyFactory.class);
-        transaccionService = new TransaccionServiceImpl(transaccionRepository,cuentaRepository, strategyFactory);
+        cuentaRepository.deleteAll().block();
+        transaccionRepository.deleteAll().block();
     }
 
+    // Test para realizarDeposito - caso positivo
     @Test
-    void testRealizarDeposito_Exitoso() {
-        Cuenta cuenta = new Cuenta("123", BigDecimal.valueOf(100000), "Juan Perez");
-        TransaccionRequestDTO depositoRequestDTO = new TransaccionRequestDTO("123", BigDecimal.valueOf(100000), TipoTransaccion.DEPOSITO_CAJERO);
+    void testRealizarDepositoExitoso() {
+        Cuenta cuenta = new Cuenta("1234567890", BigDecimal.valueOf(1000), "Juan Perez");
+        cuentaRepository.save(cuenta).block();
 
-        TransaccionStrategy estrategiaMock = mock(TransaccionStrategy.class);
-        BigDecimal costoTransaccion = BigDecimal.valueOf(2);
+        TransaccionRequestDTO requestDTO = new TransaccionRequestDTO("1234567890", BigDecimal.valueOf(500), TipoTransaccion.DEPOSITO_CAJERO);
 
-        when(estrategiaMock.getCosto()).thenReturn(costoTransaccion);
-        when(strategyFactory.getStrategy(TipoTransaccion.DEPOSITO_CAJERO, TipoOperacion.DEPOSITO)).thenReturn(estrategiaMock);
-        when(cuentaRepository.findByNumeroCuenta("123")).thenReturn(Mono.just(cuenta));
-        when(cuentaRepository.save(any(Cuenta.class))).thenAnswer(invocation -> {
-            Cuenta cuentaGuardada = invocation.getArgument(0);
-            cuentaGuardada.setSaldo(cuentaGuardada.getSaldo().add(depositoRequestDTO.getMonto()).subtract(costoTransaccion)); // Actualiza el saldo
-            return Mono.just(cuentaGuardada);
-        });
-
-        when(transaccionRepository.save(any(Transaccion.class)))
-                .thenAnswer(invocation -> {
-                    // Crear una transacción mock para la respuesta
-                    Transaccion transaccion = invocation.getArgument(0);
-                    transaccion.setId("mocked-id");
-                    return Mono.just(transaccion);
-                });
-
-        Mono<TransaccionResponseDTO> resultado = transaccionService.realizarDeposito(depositoRequestDTO);
+        Mono<TransaccionResponseDTO> resultado = transaccionService.realizarDeposito(requestDTO);
 
         StepVerifier.create(resultado)
-                .assertNext(responseDTO -> {
-                    BigDecimal saldoEsperado = cuenta.getSaldo().add(depositoRequestDTO.getMonto()).subtract(costoTransaccion);
-                    assertEquals(saldoEsperado.setScale(0, RoundingMode.HALF_UP), responseDTO.getNuevoSaldo().setScale(0, RoundingMode.HALF_UP), "El saldo esperado no coincide");
-                    assertNotNull(responseDTO);
+                .assertNext(response -> {
+                    assertEquals("1234567890", response.getNumeroCuenta());
+                    assertEquals(BigDecimal.valueOf(1498.0), response.getNuevoSaldo());
                 })
                 .verifyComplete();
     }
 
-
+    // Test para realizarDeposito - caso negativo
     @Test
-    void testRealizarRetiro_Exitoso() {
-        // Configuración inicial
-        Cuenta cuenta = new Cuenta("123", BigDecimal.valueOf(3000), "Juan Perez");
-        TransaccionRequestDTO retiroRequestDTO = new TransaccionRequestDTO("123", BigDecimal.valueOf(1000), TipoTransaccion.RETIRO_CAJERO);
-        TransaccionStrategy estrategiaMock = mock(TransaccionStrategy.class);
-        BigDecimal costoTransaccion = BigDecimal.valueOf(1);
+    void testRealizarDepositoCuentaNoEncontrada() {
+        TransaccionRequestDTO requestDTO = new TransaccionRequestDTO("99999", BigDecimal.valueOf(500), TipoTransaccion.DEPOSITO_CAJERO);
 
-        // Mocks de comportamiento
-        when(estrategiaMock.getCosto()).thenReturn(costoTransaccion);
-        when(strategyFactory.getStrategy(TipoTransaccion.RETIRO_CAJERO, TipoOperacion.RETIRO)).thenReturn(estrategiaMock);
-        when(cuentaRepository.findByNumeroCuenta("123")).thenReturn(Mono.just(cuenta));
-        when(cuentaRepository.save(any(Cuenta.class))).thenAnswer(invocation -> {
-            Cuenta cuentaActualizada = invocation.getArgument(0);
-            return Mono.just(cuentaActualizada);
-        });
-        when(transaccionRepository.save(any(Transaccion.class))).thenAnswer(invocation -> {
-            Transaccion transaccion = invocation.getArgument(0);
-            transaccion.setId("mocked-id");
-            return Mono.just(transaccion);
-        });
-
-        Mono<TransaccionResponseDTO> resultado = transaccionService.realizarRetiro(retiroRequestDTO);
+        Mono<TransaccionResponseDTO> resultado = transaccionService.realizarDeposito(requestDTO);
 
         StepVerifier.create(resultado)
-                .assertNext(responseDTO -> {
-                    BigDecimal saldoEsperado = BigDecimal.valueOf(3000) // Saldo inicial
-                            .subtract(retiroRequestDTO.getMonto())      // Monto del retiro
-                            .subtract(costoTransaccion)                // Costo de la transacción
-                            .setScale(2, RoundingMode.HALF_UP);        // Aseguramos precisión decimal
+                .expectErrorMatches(throwable -> throwable instanceof NoSuchElementException &&
+                        throwable.getMessage().equals("Cuenta no encontrada con el número de Cuenta: 99999"))
+                .verify();
+    }
 
-                    assertEquals(saldoEsperado, responseDTO.getNuevoSaldo().setScale(2, RoundingMode.HALF_UP), "El saldo nuevo no es el esperado");
-                    assertNotNull(responseDTO.getId(), "El ID de la transacción no debe ser nulo");
+    // Test para realizarRetiro - caso positivo
+    @Test
+    void testRealizarRetiroExitoso() {
+        Cuenta cuenta = new Cuenta("1234567890", BigDecimal.valueOf(1000), "Juan Perez");
+        cuentaRepository.save(cuenta).block();
+
+        TransaccionRequestDTO requestDTO = new TransaccionRequestDTO("1234567890", BigDecimal.valueOf(500), TipoTransaccion.COMPRA_EN_LINEA);
+
+        Mono<TransaccionResponseDTO> resultado = transaccionService.realizarRetiro(requestDTO);
+
+        StepVerifier.create(resultado)
+                .assertNext(response -> {
+                    assertEquals("1234567890", response.getNumeroCuenta());
+                    assertEquals(BigDecimal.valueOf(495.0), response.getNuevoSaldo());
                 })
                 .verifyComplete();
     }
 
-
-
+    // Test para realizarRetiro - caso negativo
     @Test
-    void testObtenerHistorialPorCuenta() {
-        // Crear una cuenta mock
-        Cuenta cuenta = new Cuenta("123", BigDecimal.valueOf(300), "Juan Perez");
+    void testRealizarRetiroSaldoInsuficiente() {
+        Cuenta cuenta = new Cuenta("1234567890", BigDecimal.valueOf(100), "Juan Perez");
+        cuentaRepository.save(cuenta).block();
 
-        // Crear transacciones mock (de tipo Transaccion)
-        Transaccion transaccion1 = new Transaccion(BigDecimal.valueOf(100), BigDecimal.valueOf(2), LocalDateTime.now(), TipoTransaccion.DEPOSITO_CAJERO, "123");
-        Transaccion transaccion2 = new Transaccion(BigDecimal.valueOf(200), BigDecimal.valueOf(1), LocalDateTime.now(), TipoTransaccion.RETIRO_CAJERO, "123");
+        TransaccionRequestDTO requestDTO = new TransaccionRequestDTO("1234567890", BigDecimal.valueOf(500), TipoTransaccion.COMPRA_EN_LINEA);
 
-        // Simular que la cuenta existe y tiene transacciones
-        when(cuentaRepository.findById("123")).thenReturn(Mono.just(cuenta));
-        when(transaccionRepository.findAllByCuentaId("123")).thenReturn(Flux.just(transaccion1, transaccion2));
+        Mono<TransaccionResponseDTO> resultado = transaccionService.realizarRetiro(requestDTO);
 
-        // Llamada al servicio para obtener el historial
-        Flux<TransaccionResponseDTO> resultado = transaccionService.obtenerHistorialPorCuenta("123");
-
-        // Verificación del resultado usando StepVerifier
         StepVerifier.create(resultado)
-                .expectNextMatches(transaccion ->
-                        transaccion.getMonto().equals(BigDecimal.valueOf(100)) &&
-                                transaccion.getTipoTransaccion().equals(TipoTransaccion.DEPOSITO_CAJERO))
-                .expectNextMatches(transaccion ->
-                        transaccion.getMonto().equals(BigDecimal.valueOf(200)) &&
-                        transaccion.getTipoTransaccion().equals(TipoTransaccion.RETIRO_CAJERO))
+                .expectErrorMatches(throwable -> throwable instanceof ConflictException &&
+                        throwable.getMessage().equals("Saldo insuficiente para realizar el retiro"))
+                .verify();
+    }
+
+    // Test para obtenerHistorialPorCuenta - caso positivo
+    @Test
+    void testObtenerHistorialPorCuentaExitoso() {
+        Cuenta cuenta = new Cuenta("1234567890", BigDecimal.valueOf(1000), "Juan Perez");
+        cuentaRepository.save(cuenta).block();
+
+        Transaccion transaccion1 = new Transaccion(BigDecimal.valueOf(200), BigDecimal.valueOf(5), LocalDateTime.now(), TipoTransaccion.DEPOSITO_CAJERO, cuenta.getId());
+        Transaccion transaccion2 = new Transaccion(BigDecimal.valueOf(100), BigDecimal.valueOf(2), LocalDateTime.now(), TipoTransaccion.COMPRA_EN_LINEA, cuenta.getId());
+        transaccionRepository.saveAll(Flux.just(transaccion1, transaccion2)).blockLast();
+
+        Flux<TransaccionResponseDTO> resultado = transaccionService.obtenerHistorialPorCuenta(cuenta.getId());
+
+        StepVerifier.create(resultado)
+                .expectNextCount(2)
                 .verifyComplete();
     }
 
+    // Test para obtenerHistorialPorCuenta - caso negativo
+    @Test
+    void testObtenerHistorialPorCuentaNoExiste() {
+        Flux<TransaccionResponseDTO> resultado = transaccionService.obtenerHistorialPorCuenta("99999");
+
+        StepVerifier.create(resultado)
+                .expectNextCount(0)
+                .verifyComplete();
+    }
+
+    // Test para obtenerTransacciones - caso positivo
+    @Test
+    void testObtenerTransaccionesExitoso() {
+        Cuenta cuenta = new Cuenta("1234567890", BigDecimal.valueOf(1000), "Juan Perez");
+        cuentaRepository.save(cuenta).block();
+
+        Transaccion transaccion1 = new Transaccion(BigDecimal.valueOf(200), BigDecimal.valueOf(5), LocalDateTime.now(), TipoTransaccion.DEPOSITO_CAJERO, cuenta.getId());
+        Transaccion transaccion2 = new Transaccion(BigDecimal.valueOf(100), BigDecimal.valueOf(2), LocalDateTime.now(), TipoTransaccion.COMPRA_EN_LINEA, cuenta.getId());
+        transaccionRepository.saveAll(Flux.just(transaccion1, transaccion2)).blockLast();
+
+        Flux<TransaccionResponseDTO> resultado = transaccionService.obtenerTransacciones();
+
+        StepVerifier.create(resultado)
+                .expectNextCount(2)
+                .verifyComplete();
+    }
+
+    // Test para obtenerTransacciones - caso negativo (sin transacciones)
+    @Test
+    void testObtenerTransaccionesSinDatos() {
+        Flux<TransaccionResponseDTO> resultado = transaccionService.obtenerTransacciones();
+
+        StepVerifier.create(resultado)
+                .expectNextCount(0)
+                .verifyComplete();
+    }
 }
-

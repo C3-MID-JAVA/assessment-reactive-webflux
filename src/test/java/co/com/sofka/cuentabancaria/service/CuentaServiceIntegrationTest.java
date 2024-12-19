@@ -49,7 +49,7 @@ public class CuentaServiceIntegrationTest {
 
     @Test
     void testObtenerCuentaPorId_Exitoso() {
-        Cuenta cuenta = new Cuenta("12345", BigDecimal.valueOf(500), "Juan Perez");
+        Cuenta cuenta = new Cuenta("1234567890", BigDecimal.valueOf(500), "Juan Perez");
         cuentaRepository.save(cuenta).block(); // Bloqueo para asegurar que el dato se guarda antes de continuar.
 
         Mono<CuentaResponseDTO> resultado = cuentaService.obtenerCuentaPorId(cuenta.getId());

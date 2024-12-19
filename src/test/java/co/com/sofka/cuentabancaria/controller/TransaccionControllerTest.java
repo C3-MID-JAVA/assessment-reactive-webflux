@@ -107,7 +107,7 @@ class TransaccionControllerTest {
 
     @Test
     void obtenerHistorialPorCuenta_Exito() {
-        PeticionByIdDTO peticion = new PeticionByIdDTO("12345");
+        PeticionByIdDTO peticion = new PeticionByIdDTO("1234567890");
         List<TransaccionResponseDTO> response = Arrays.asList(new TransaccionResponseDTO(), new TransaccionResponseDTO());
 
         when(transaccionService.obtenerHistorialPorCuenta(peticion.getCuentaId()))
