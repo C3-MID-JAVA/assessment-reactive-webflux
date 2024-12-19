@@ -14,9 +14,11 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
+import java.util.List;
 import java.util.Optional;
 
 
@@ -67,5 +69,24 @@ public class UserServiceTest {
 
         verify(userRepository, times(1)).findByDocumentId(userRequest.getDocumentId());
         verify(userRepository, never()).save(any(User.class));
+    }
+
+    @Test
+    void shouldReturnUsersSuccesfully(){
+        List<User> users = List.of(
+                new User("675e0e1259d6de4eda5b29b6", "Jhon Doe", "12345678"),
+                new User("675e0e1259d6de4eda5b29b", "No name", "12345679")
+        );
+
+        when(userRepository.findAll()).thenReturn(Flux.fromIterable(users));
+
+        Flux<UserResponseDTO> response = userService.getAllUsers();
+
+        StepVerifier.create(response)
+                .expectNextMatches(userResponseDTO -> "12345678".equals(userResponseDTO.getDocumentId()))
+                .expectNextMatches(userResponseDTO -> "12345679".equals(userResponseDTO.getDocumentId()))
+                .verifyComplete();
+
+        verify(userRepository, times(1)).findAll();
     }
 }

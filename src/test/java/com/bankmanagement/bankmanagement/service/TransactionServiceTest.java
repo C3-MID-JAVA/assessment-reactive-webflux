@@ -125,10 +125,10 @@ public class TransactionServiceTest {
 
         when(accountRepository.findByAccountNumber(transactionRequest.getAccountNumber()))
                 .thenReturn(Mono.just(account));
+        when(strategyFactory.getStrategy(transactionRequest.getType())).thenReturn(atmWithdrawalStrategy);
         when(atmWithdrawalStrategy.calculateFee()).thenReturn(1.0);
         when(atmWithdrawalStrategy.calculateBalance(account.getBalance(), transactionRequest.getAmount()))
                 .thenReturn(449.0);
-        when(strategyFactory.getStrategy(transactionRequest.getType())).thenReturn(atmWithdrawalStrategy);
         when(transactionRepository.save(any(Transaction.class))).thenReturn(Mono.just(savedTransaction));
         when(accountRepository.save(account)).thenReturn(Mono.just(account));
 
