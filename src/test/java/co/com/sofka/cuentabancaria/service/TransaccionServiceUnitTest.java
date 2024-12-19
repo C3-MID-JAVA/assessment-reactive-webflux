@@ -128,7 +128,7 @@ public class TransaccionServiceUnitTest {
         StepVerifier.create(responseMono)
                 .expectErrorSatisfies(throwable -> {
                     assertTrue(throwable instanceof ConflictException);
-                    assertEquals("Saldo insuficiente para realizar el retiro", throwable.getMessage());
+                    assertEquals("Saldo insuficiente para realizar la operación.", throwable.getMessage());
                 })
                 .verify();
     }

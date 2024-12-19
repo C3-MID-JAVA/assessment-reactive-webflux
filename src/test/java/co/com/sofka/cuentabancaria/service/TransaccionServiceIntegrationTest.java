@@ -101,7 +101,7 @@ public class TransaccionServiceIntegrationTest {
 
         StepVerifier.create(resultado)
                 .expectErrorMatches(throwable -> throwable instanceof ConflictException &&
-                        throwable.getMessage().equals("Saldo insuficiente para realizar el retiro"))
+                        throwable.getMessage().equals("Saldo insuficiente para compra en línea"))
                 .verify();
     }
 

@@ -64,7 +64,7 @@ class TransaccionControllerTest {
 
         StepVerifier.create(resultado)
                 .expectErrorMatches(throwable -> throwable instanceof IllegalArgumentException &&
-                        throwable.getMessage().equals("El cuerpo de la solicitud no puede ser nulo"))
+                        throwable.getMessage().equals("Error al realizar el depósito: El cuerpo de la solicitud no puede ser nulo"))
                 .verify();
 
         verify(transaccionService, times(1)).realizarDeposito(request);
