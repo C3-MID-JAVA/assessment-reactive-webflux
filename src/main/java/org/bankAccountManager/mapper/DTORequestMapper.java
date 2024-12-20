@@ -2,100 +2,84 @@ package org.bankAccountManager.mapper;
 
 import org.bankAccountManager.DTO.request.*;
 import org.bankAccountManager.entity.*;
+import org.bankAccountManager.util.function.TransactionMappers;
+import org.springframework.beans.BeanUtils;
+import reactor.core.publisher.Mono;
 
 public class DTORequestMapper {
-    public static AccountRequestDTO toAccountRequestDTO(Account a) {
-        return new AccountRequestDTO(
-                a.getAccountNumber(),
-                a.getAccountType(),
-                a.getBalance(),
-                a.getCards().stream().map(DTORequestMapper::toCardRequestDTO).toList(),
-                a.getTransactions().stream().map(DTORequestMapper::toTransactionRequestDTO).toList(),
-                a.getId());
+    public static Mono<AccountRequestDTO> toAccountRequestDTO(Mono<Account> a) {
+        return a.map(aEnt -> {
+            AccountRequestDTO aDTO = new AccountRequestDTO();
+            BeanUtils.copyProperties(aEnt, aDTO);
+            return aDTO;
+        });
     }
 
-    public static BranchRequestDTO toBranchRequestDTO(Branch b) {
-        return new BranchRequestDTO(
-                b.getAddress(),
-                b.getId(),
-                b.getName(),
-                b.getPhone());
+    public static Mono<BranchRequestDTO> toBranchRequestDTO(Mono<Branch> b) {
+        return b.map(bEnt -> {
+            BranchRequestDTO bDTO = new BranchRequestDTO();
+            BeanUtils.copyProperties(bEnt, bDTO);
+            return bDTO;
+        });
     }
 
-    public static CardRequestDTO toCardRequestDTO(Card c) {
-        return new CardRequestDTO(
-                c.getCardNumber(),
-                c.getCardType(),
-                c.getCvv(),
-                c.getExpirationDate(),
-                c.getId());
+    public static Mono<CardRequestDTO> toCardRequestDTO(Mono<Card> c) {
+        return c.map(cEnt -> {
+            CardRequestDTO cDTO = new CardRequestDTO();
+            BeanUtils.copyProperties(cEnt, cDTO);
+            return cDTO;
+        });
     }
 
-    public static CustomerRequestDTO toCustomerRequestDTO(Customer c) {
-        return new CustomerRequestDTO(
-                c.getAddress(),
-                c.getEmail(),
-                c.getFirstName(),
-                c.getId(),
-                c.getLastName(),
-                c.getPhone(),
-                c.getAccounts().stream().map(DTORequestMapper::toAccountRequestDTO).toList());
+    public static Mono<CustomerRequestDTO> toCustomerRequestDTO(Mono<Customer> c) {
+        return c.map(cEnt -> {
+            CustomerRequestDTO cDTO = new CustomerRequestDTO();
+            BeanUtils.copyProperties(cEnt, cDTO);
+            return cDTO;
+        });
     }
 
-    public static TransactionRequestDTO toTransactionRequestDTO(Transaction t) {
-        return new TransactionRequestDTO(
-                t.getAmount(),
-                t.getBranches().stream().map(DTORequestMapper::toBranchRequestDTO).toList(),
-                t.getDate(),
-                t.getDescription(),
-                t.getId(),
-                t.getType());
+    public static Mono<TransactionRequestDTO> toTransactionRequestDTO(Mono<Transaction> t) {
+        return t.map(tEnt -> {
+            TransactionRequestDTO tDTO = new TransactionRequestDTO();
+            BeanUtils.copyProperties(tEnt, tDTO);
+            return tDTO;
+        });
     }
 
-    public static Account toAccount(AccountRequestDTO aDTO) {
-        return new Account(
-                aDTO.getAccount_number(),
-                aDTO.getAccount_type(),
-                aDTO.getBalance(),
-                aDTO.getCards().stream().map(DTORequestMapper::toCard).toList(),
-                aDTO.getTransactions().stream().map(DTORequestMapper::toTransaction).toList(),
-                aDTO.getId());
+    public static Mono<Account> toAccount(Mono<AccountRequestDTO> aDTO) {
+        return aDTO.map(dto -> {
+            Account a = new Account();
+            BeanUtils.copyProperties(dto, a);
+            return a;
+        });
     }
 
-    public static Branch toBranch(BranchRequestDTO bDTO) {
-        return new Branch(
-                bDTO.getAddress(),
-                bDTO.getId(),
-                bDTO.getName(),
-                bDTO.getPhone());
+    public static Mono<Branch> toBranch(Mono<BranchRequestDTO> bDTO) {
+        return bDTO.map(dto -> {
+            Branch b = new Branch();
+            BeanUtils.copyProperties(dto, b);
+            return b;
+        });
     }
 
-    public static Card toCard(CardRequestDTO cDTO) {
-        return new Card(
-                cDTO.getCard_number(),
-                cDTO.getCard_type(),
-                cDTO.getExpiration_date(),
-                cDTO.getId());
+    public static Mono<Card> toCard(Mono<CardRequestDTO> cDTO) {
+        return cDTO.map(dto -> {
+            Card c = new Card();
+            BeanUtils.copyProperties(dto, c);
+            return c;
+        });
     }
 
-    public static Customer toCustomer(CustomerRequestDTO cDTO) {
-        return new Customer(
-                cDTO.getAddress(),
-                cDTO.getEmail(),
-                cDTO.getFirst_name(),
-                cDTO.getId(),
-                cDTO.getLast_name(),
-                cDTO.getPhone(),
-                cDTO.getAccounts().stream().map(DTORequestMapper::toAccount).toList());
+    public static Mono<Customer> toCustomer(Mono<CustomerRequestDTO> cDTO) {
+        return cDTO.map(dto -> {
+            Customer c = new Customer();
+            BeanUtils.copyProperties(dto, c);
+            return c;
+        });
     }
 
-    public static Transaction toTransaction(TransactionRequestDTO tDTO) {
-        return new Transaction(
-                tDTO.getAmount(),
-                tDTO.getBranches().stream().map(DTORequestMapper::toBranch).toList(),
-                tDTO.getDate(),
-                tDTO.getDescription(),
-                tDTO.getId(),
-                tDTO.getType());
+    public static Mono<Transaction> toTransaction(Mono<TransactionRequestDTO> tDTO) {
+        return tDTO.map(TransactionMappers.toTransaction);
     }
 }

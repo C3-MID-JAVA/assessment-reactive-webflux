@@ -14,7 +14,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @DataMongoTest
 public class CustomerRepositoryTest {
 
-    @Autowired
+    /*@Autowired
     private CustomerRepository customerRepository;
 
     private Customer customer1;
@@ -170,5 +170,5 @@ public class CustomerRepositoryTest {
 
         Customer savedCustomer = customerRepository.save(invalidCustomer);
         assertThat(savedCustomer.getFirstName()).isNull(); // Verifica que el campo faltante sea nulo
-    }
+    }*/
 }

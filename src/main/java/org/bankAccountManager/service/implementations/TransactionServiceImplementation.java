@@ -6,13 +6,18 @@ import org.bankAccountManager.entity.Transaction;
 import org.bankAccountManager.repository.AccountRepository;
 import org.bankAccountManager.repository.TransactionRepository;
 import org.bankAccountManager.service.interfaces.TransactionService;
+import org.bankAccountManager.util.predicate.TransactionValidations;
+import org.springframework.data.mongodb.core.ReactiveMongoTemplate;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 import java.math.BigDecimal;
-import java.sql.Timestamp;
-import java.util.ArrayList;
+import java.time.LocalDateTime;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 @Service
@@ -31,90 +36,99 @@ public class TransactionServiceImplementation implements TransactionService {
 
     private final TransactionRepository transactionRepository;
     private final AccountRepository accountRepository;
+    private final ReactiveMongoTemplate reactiveMongoTemplate;
 
-    public TransactionServiceImplementation(TransactionRepository transactionRepository, AccountRepository accountRepository) {
+    public TransactionServiceImplementation(TransactionRepository transactionRepository, AccountRepository accountRepository, ReactiveMongoTemplate reactiveMongoTemplate) {
         this.transactionRepository = transactionRepository;
         this.accountRepository = accountRepository;
+        this.reactiveMongoTemplate = reactiveMongoTemplate;
     }
 
     @Override
-    public Transaction createTransaction(Transaction transaction) {
-        if (transactionRepository.existsById(transaction.getId()))
-            throw new IllegalArgumentException("Transaction already exists");
-        if (!transactionTypes.containsKey(transaction.getType()))
-            throw new IllegalArgumentException("Invalid transaction type: " + transaction.getType());
-        switch (transaction.getType()) {
-            case "branch_transfer":
-            case "another_account_deposit":
-            case "atm_deposit":
-                executeTransaction(transaction,
-                        transaction.getAmount().add(transactionTypes.get(transaction.getType())));
-                break;
-            case "store_card_purchase":
-            case "online_card_purchase":
-            case "atm_withdrawal":
-                executeTransaction(transaction,
-                        transaction.getAmount().add(transactionTypes.get(transaction.getType())).negate());
-                break;
-            default:
-                throw new IllegalArgumentException("Unhandled transaction type: " + transaction.getType());
+    public Mono<Transaction> createTransaction(Mono<Transaction> transaction) {
+        return transaction.flatMap(tEnt ->
+                transactionRepository.existsById(tEnt.getId())
+                        .flatMap(exists -> {
+                            if (exists)
+                                return Mono.error(new IllegalArgumentException("Transaction already exists"));
+                            if (!TransactionValidations.isValidTransactionType(transactionTypes).test(tEnt.getType()))
+                                return Mono.error(new IllegalArgumentException("Invalid transaction type: " + tEnt.getType()));
+                            return processTransactionByType(tEnt)
+                                    .switchIfEmpty(Mono.error(new IllegalArgumentException("Account not found")))
+                                    .then(reactiveMongoTemplate.save(tEnt));
+                        }));
+    }
+
+    private Mono<Account> processTransactionByType(Transaction transaction) {
+        return executeTransaction(transaction.getDestinationAccount(),
+                transaction.getSourceAccount(),
+                transaction.getAmount().add(transactionTypes.get(transaction.getType())).negate());
+    }
+
+    private Mono<Account> executeTransaction(Account origin, Account destination, BigDecimal amount) {
+        if (origin == null || destination == null)
+            throw new IllegalArgumentException("Account not found");
+        if (amount.compareTo(BigDecimal.ZERO) < 0 && origin.getBalance().compareTo(amount) < 0) {
+            throw new IllegalArgumentException("Insufficient balance in origin account: " + origin.getId());
         }
-        return transactionRepository.save(transaction);
-    }
-
-    private void executeTransaction(Transaction transaction, BigDecimal amount) {
-        List<Transaction> transactions = new ArrayList<>();
-        transactions.add(transaction);
-        Account account = accountRepository.getAccountByTransactions(transactions);
-        if (amount.compareTo(BigDecimal.ZERO) < 0 && account.getBalance().compareTo(amount.abs()) < 0) {
-            throw new IllegalArgumentException("Insufficient balance in account: " + account.getId());
-        }
-        account.setBalance(account.getBalance().add(amount));
-        accountRepository.save(account);
+        origin.setBalance(origin.getBalance().add(amount.negate()));
+        destination.setBalance(destination.getBalance().add(amount));
+        Mono<Account> savedOrigin = accountRepository.save(origin);
+        Mono<Account> savedDestination = accountRepository.save(destination);
+        return Mono.zip(savedOrigin, savedDestination).then(Mono.just(origin));
     }
 
     @Override
-    public Transaction getTransactionById(int id) {
-        return transactionRepository.findTransactionById(id);
+    public Mono<Transaction> getTransactionById(Mono<Integer> id) {
+        return id.flatMap(transactionRepository::findTransactionById);
     }
 
     @Override
-    public List<Transaction> getAllTransactions() {
+    public Flux<Transaction> getAllTransactions() {
         return transactionRepository.findAll();
     }
 
     @Override
-    public List<Transaction> findTransactionsByBranches(List<Branch> branches) {
-        return transactionRepository.findTransactionsByBranches(branches);
+    public Mono<Transaction> getTransactionByBranch(Mono<Branch> branch) {
+        return branch.flatMap(transactionRepository::findTransactionByBranch);
     }
 
     @Override
-    public List<Transaction> getTransactionsByDestinationAccountId(int destination_account_id) {
-        return transactionRepository.findTransactionsByDestinationAccountId(destination_account_id);
+    public Flux<Transaction> getTransactionsByDestinationAccount(Mono<Account> destination_account) {
+        return destination_account.flatMapMany(transactionRepository::findTransactionsByDestinationAccount);
     }
 
     @Override
-    public List<Transaction> getTransactionsBySourceAccountId(int source_account_id) {
-        return transactionRepository.findTransactionsBySourceAccountId(source_account_id);
+    public Flux<Transaction> getTransactionsBySourceAccount(Mono<Account> source_account) {
+        return source_account.flatMapMany(transactionRepository::findTransactionsBySourceAccount);
     }
 
     @Override
-    public List<Transaction> getTransactionsByDate(Timestamp date) {
-        return transactionRepository.findTransactionsByDate(date);
+    public Flux<Transaction> getTransactionsByDate(Mono<LocalDateTime> date) {
+        return date.flatMapMany(transactionRepository::findTransactionsByDate);
     }
 
     @Override
-    public List<Transaction> getTransactionsByType(String type) {
-        return transactionRepository.findTransactionsByType(type);
+    public Flux<Transaction> getTransactionsByType(Mono<String> type) {
+        return type.flatMapMany(transactionRepository::findTransactionsByType);
     }
 
     @Override
-    public Transaction updateTransaction(Transaction transaction) {
-        return transactionRepository.save(transaction);
+    public Mono<Transaction> updateTransaction(Mono<Transaction> transaction) {
+        return transaction.flatMap(tEnt ->
+                reactiveMongoTemplate.findAndModify(
+                                Query.query(Criteria.where("id").is(tEnt.getId())),
+                                new Update()
+                                        .set("date", tEnt.getDate())
+                                        .set("type", tEnt.getType())
+                                        .set("amount", tEnt.getAmount())
+                                        .set("description", tEnt.getDescription()),
+                                Transaction.class)
+                        .switchIfEmpty(Mono.error(new IllegalArgumentException("Account not found"))));
     }
 
     @Override
-    public void deleteTransaction(Transaction transaction) {
-        transactionRepository.delete(transaction);
+    public Mono<Void> deleteTransaction(Mono<Integer> id) {
+        return id.flatMap(transactionRepository::deleteById);
     }
 }

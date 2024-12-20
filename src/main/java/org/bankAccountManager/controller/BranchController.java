@@ -6,13 +6,14 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.bankAccountManager.DTO.request.BranchRequestDTO;
 import org.bankAccountManager.DTO.response.BranchResponseDTO;
-import org.bankAccountManager.mapper.DTOResponseMapper;
+import org.bankAccountManager.entity.Branch;
 import org.bankAccountManager.service.implementations.BranchServiceImplementation;
+import org.bankAccountManager.service.interfaces.BranchService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 import static org.bankAccountManager.mapper.DTORequestMapper.toBranch;
 import static org.bankAccountManager.mapper.DTOResponseMapper.toBranchResponseDTO;
@@ -22,7 +23,7 @@ import static org.bankAccountManager.mapper.DTOResponseMapper.toBranchResponseDT
 @RequestMapping("/branches")
 public class BranchController {
 
-    private final BranchServiceImplementation branchService;
+    private final BranchService branchService;
 
     public BranchController(BranchServiceImplementation branchService) {
         this.branchService = branchService;
@@ -34,28 +35,36 @@ public class BranchController {
             @ApiResponse(responseCode = "400", description = "Invalid input data")
     })
     @PostMapping
-    public ResponseEntity<BranchResponseDTO> createBranch(@RequestBody BranchRequestDTO branch) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(toBranchResponseDTO(branchService.createBranch(toBranch(branch))));
+    public Mono<ResponseEntity<BranchResponseDTO>> createBranch(@RequestBody BranchRequestDTO branch) {
+        return branchService.createBranch(toBranch(Mono.just(branch)))
+                .flatMap(branchEntity -> toBranchResponseDTO(Mono.just(branchEntity))
+                        .map(branchResponseDTO -> ResponseEntity.status(HttpStatus.CREATED).body(branchResponseDTO)));
     }
 
     @Operation(summary = "Retrieve a branch by ID", description = "Get the details of a branch using its ID")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Branch retrieved successfully"),
+            @ApiResponse(responseCode = "302", description = "Branch retrieved successfully"),
             @ApiResponse(responseCode = "404", description = "Branch not found")
     })
-    @GetMapping("/id")
-    public ResponseEntity<BranchResponseDTO> getBranchById(@RequestBody BranchRequestDTO branch) {
-        return ResponseEntity.ok(toBranchResponseDTO(branchService.getBranchById(branch.getId())));
+    @PostMapping("/id")
+    public Mono<ResponseEntity<BranchResponseDTO>> getBranchById(@RequestBody BranchRequestDTO branch) {
+        return branchService.getBranchById(toBranch(Mono.just(branch))
+                        .map(Branch::getId))
+                .flatMap(branchEntity -> toBranchResponseDTO(Mono.just(branchEntity))
+                        .map(branchResponseDTO -> ResponseEntity.status(HttpStatus.FOUND).body(branchResponseDTO)));
     }
 
     @Operation(summary = "Retrieve a branch by name", description = "Get the details of a branch using its name")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Branch retrieved successfully"),
+            @ApiResponse(responseCode = "302", description = "Branch retrieved successfully"),
             @ApiResponse(responseCode = "404", description = "Branch not found")
     })
-    @GetMapping("/name")
-    public ResponseEntity<BranchResponseDTO> getBranchByName(@RequestBody BranchRequestDTO branch) {
-        return ResponseEntity.ok(toBranchResponseDTO(branchService.getBranchByName(branch.getName())));
+    @PostMapping("/name")
+    public Mono<ResponseEntity<BranchResponseDTO>> getBranchByName(@RequestBody BranchRequestDTO branch) {
+        return branchService.getBranchByName(toBranch(Mono.just(branch))
+                        .map(Branch::getName))
+                .flatMap(branchEntity -> toBranchResponseDTO(Mono.just(branchEntity))
+                        .map(branchResponseDTO -> ResponseEntity.status(HttpStatus.FOUND).body(branchResponseDTO)));
     }
 
     @Operation(summary = "Retrieve all branches", description = "Get the list of all branches")
@@ -63,8 +72,13 @@ public class BranchController {
             @ApiResponse(responseCode = "200", description = "Branches retrieved successfully")
     })
     @GetMapping
-    public ResponseEntity<List<BranchResponseDTO>> getAllBranches() {
-        return ResponseEntity.ok(branchService.getAllBranches().stream().map(DTOResponseMapper::toBranchResponseDTO).toList());
+    public Mono<ResponseEntity<Flux<BranchResponseDTO>>> getAllBranches() {
+        return Mono.just(
+                ResponseEntity.ok(
+                        branchService.getAllBranches()
+                                .flatMap(branchEntity -> toBranchResponseDTO(Mono.just(branchEntity)))
+                )
+        );
     }
 
     @Operation(summary = "Update a branch", description = "Update an existing branch with new details")
@@ -74,8 +88,10 @@ public class BranchController {
             @ApiResponse(responseCode = "404", description = "Branch not found")
     })
     @PutMapping
-    public ResponseEntity<BranchResponseDTO> updateBranch(@RequestBody BranchRequestDTO branch) {
-        return ResponseEntity.ok(toBranchResponseDTO(branchService.updateBranch(toBranch(branch))));
+    public Mono<ResponseEntity<BranchResponseDTO>> updateBranch(@RequestBody BranchRequestDTO branch) {
+        return branchService.updateBranch(toBranch(Mono.just(branch)))
+                .flatMap(branchEntity -> toBranchResponseDTO(Mono.just(branchEntity))
+                        .map(branchResponseDTO -> ResponseEntity.status(HttpStatus.OK).body(branchResponseDTO)));
     }
 
     @Operation(summary = "Delete a branch", description = "Delete a branch by its ID")
@@ -84,8 +100,12 @@ public class BranchController {
             @ApiResponse(responseCode = "404", description = "Branch not found")
     })
     @DeleteMapping
-    public ResponseEntity<Void> deleteBranch(@RequestBody BranchRequestDTO branch) {
-        branchService.deleteBranch(branchService.getBranchById(branch.getId()));
-        return ResponseEntity.noContent().build();
+    public Mono<ResponseEntity<Void>> deleteBranch(@RequestBody BranchRequestDTO branch) {
+        return toBranch(Mono.just(branch)) // Convierte el DTO a la entidad Account
+                .flatMap(branchEntity ->
+                        branchService.deleteBranch(Mono.just(branchEntity.getId()))
+                                .thenReturn(ResponseEntity.noContent().<Void>build())
+                                .onErrorResume(e -> Mono.just(ResponseEntity.notFound().build()))
+                );
     }
 }

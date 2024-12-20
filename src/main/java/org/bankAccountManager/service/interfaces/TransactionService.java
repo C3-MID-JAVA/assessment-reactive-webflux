@@ -1,29 +1,31 @@
 package org.bankAccountManager.service.interfaces;
 
+import org.bankAccountManager.entity.Account;
 import org.bankAccountManager.entity.Branch;
 import org.bankAccountManager.entity.Transaction;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
-import java.sql.Timestamp;
-import java.util.List;
+import java.time.LocalDateTime;
 
 public interface TransactionService {
-    Transaction createTransaction(Transaction transaction);
+    Mono<Transaction> createTransaction(Mono<Transaction> transaction);
 
-    Transaction getTransactionById(int id);
+    Mono<Transaction> getTransactionById(Mono<Integer> id);
 
-    List<Transaction> getAllTransactions();
+    Flux<Transaction> getAllTransactions();
 
-    List<Transaction> findTransactionsByBranches(List<Branch> branches);
+    Mono<Transaction> getTransactionByBranch(Mono<Branch> branch);
 
-    List<Transaction> getTransactionsByDestinationAccountId(int destination_account_id);
+    Flux<Transaction> getTransactionsByDestinationAccount(Mono<Account> destination_account);
 
-    List<Transaction> getTransactionsBySourceAccountId(int source_account_id);
+    Flux<Transaction> getTransactionsBySourceAccount(Mono<Account> origin_account);
 
-    List<Transaction> getTransactionsByDate(Timestamp date);
+    Flux<Transaction> getTransactionsByDate(Mono<LocalDateTime> date);
 
-    List<Transaction> getTransactionsByType(String type);
+    Flux<Transaction> getTransactionsByType(Mono<String> type);
 
-    Transaction updateTransaction(Transaction transaction);
+    Mono<Transaction> updateTransaction(Mono<Transaction> transaction);
 
-    void deleteTransaction(Transaction transaction);
+    Mono<Void> deleteTransaction(Mono<Integer> id);
 }

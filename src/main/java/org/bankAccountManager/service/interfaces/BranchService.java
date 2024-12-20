@@ -2,19 +2,19 @@ package org.bankAccountManager.service.interfaces;
 
 
 import org.bankAccountManager.entity.Branch;
-
-import java.util.List;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 public interface BranchService {
-    Branch createBranch(Branch branch);
+    Mono<Branch> createBranch(Mono<Branch> branch);
 
-    Branch getBranchById(int id);
+    Mono<Branch> getBranchById(Mono<Integer> id);
 
-    Branch getBranchByName(String name);
+    Mono<Branch> getBranchByName(Mono<String> name);
 
-    List<Branch> getAllBranches();
+    Flux<Branch> getAllBranches();
 
-    Branch updateBranch(Branch branch);
+    Mono<Branch> updateBranch(Mono<Branch> branch);
 
-    void deleteBranch(Branch branch);
+    Mono<Void> deleteBranch(Mono<Integer> id);
 }

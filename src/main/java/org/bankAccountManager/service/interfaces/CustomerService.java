@@ -1,23 +1,23 @@
 package org.bankAccountManager.service.interfaces;
 
 import org.bankAccountManager.entity.Customer;
-
-import java.util.List;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 public interface CustomerService {
-    Customer createCustomer(Customer customer);
+    Mono<Customer> createCustomer(Mono<Customer> customer);
 
-    Customer getCustomerById(int id);
+    Mono<Customer> getCustomerById(Mono<Integer> id);
 
-    Customer getCustomerByFirstName(String first_name);
+    Mono<Customer> getCustomerByFirstName(Mono<String> first_name);
 
-    Customer getCustomerByLastName(String last_name);
+    Mono<Customer> getCustomerByLastName(Mono<String> last_name);
 
-    Customer getCustomerByEmail(String email);
+    Mono<Customer> getCustomerByEmail(Mono<String> email);
 
-    List<Customer> getAllCustomers();
+    Flux<Customer> getAllCustomers();
 
-    Customer updateCustomer(Customer customer);
+    Mono<Customer> updateCustomer(Mono<Customer> customer);
 
-    void deleteCustomer(Customer customer);
+    Mono<Void> deleteCustomer(Mono<Integer> id);
 }

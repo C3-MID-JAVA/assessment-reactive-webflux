@@ -2,18 +2,23 @@ package org.bankAccountManager.repository;
 
 import org.bankAccountManager.entity.Account;
 import org.bankAccountManager.entity.Transaction;
-import org.springframework.data.mongodb.repository.MongoRepository;
+import org.springframework.data.mongodb.repository.ReactiveMongoRepository;
 import org.springframework.stereotype.Repository;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 import java.util.List;
 
 @Repository
-public interface AccountRepository extends MongoRepository<Account, Long> {
-    Account findAccountById(int id);
+public interface AccountRepository extends ReactiveMongoRepository<Account, String> {
 
-    Boolean existsById(int id);
+    Mono<Account> findAccountById(int id);
 
-    List<Account> findAll();
+    Mono<Boolean> existsById(int id);
 
-    Account getAccountByTransactions(List<Transaction> transactions);
+    Flux<Account> findAll();
+
+    Mono<Account> getAccountByTransactions(List<Transaction> transactions);
+
+    Mono<Void> deleteById(int id);
 }

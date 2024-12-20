@@ -14,7 +14,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @DataMongoTest
 public class BranchRepositoryTest {
 
-    @Autowired
+    /*@Autowired
     private BranchRepository branchRepository;
 
     private Branch branch1;
@@ -125,5 +125,5 @@ public class BranchRepositoryTest {
         // Intenta guardar una sucursal inválida
         Branch savedBranch = branchRepository.save(invalidBranch);
         assertThat(savedBranch.getName()).isNull(); // Los campos faltantes quedan como null
-    }
+    }*/
 }

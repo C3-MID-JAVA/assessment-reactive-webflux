@@ -6,13 +6,14 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.bankAccountManager.DTO.request.CustomerRequestDTO;
 import org.bankAccountManager.DTO.response.CustomerResponseDTO;
-import org.bankAccountManager.mapper.DTOResponseMapper;
+import org.bankAccountManager.entity.Customer;
 import org.bankAccountManager.service.implementations.CustomerServiceImplementation;
+import org.bankAccountManager.service.interfaces.CustomerService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 import static org.bankAccountManager.mapper.DTORequestMapper.toCustomer;
 import static org.bankAccountManager.mapper.DTOResponseMapper.toCustomerResponseDTO;
@@ -22,7 +23,7 @@ import static org.bankAccountManager.mapper.DTOResponseMapper.toCustomerResponse
 @RequestMapping("/customers")
 public class CustomerController {
 
-    private final CustomerServiceImplementation customerService;
+    private final CustomerService customerService;
 
     public CustomerController(CustomerServiceImplementation customerService) {
         this.customerService = customerService;
@@ -34,48 +35,62 @@ public class CustomerController {
             @ApiResponse(responseCode = "400", description = "Invalid input data")
     })
     @PostMapping
-    public ResponseEntity<CustomerResponseDTO> createCustomer(@RequestBody CustomerRequestDTO customer) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(toCustomerResponseDTO(customerService.createCustomer(toCustomer(customer))));
+    public Mono<ResponseEntity<CustomerResponseDTO>> createCustomer(@RequestBody CustomerRequestDTO customer) {
+        return customerService.createCustomer(toCustomer(Mono.just(customer)))
+                .flatMap(customerEntity -> toCustomerResponseDTO(Mono.just(customerEntity))
+                        .map(customerResponseDTO -> ResponseEntity.status(HttpStatus.CREATED).body(customerResponseDTO)));
     }
 
     @Operation(summary = "Retrieve a customer by ID", description = "Get details of a customer by their unique ID")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Customer retrieved successfully"),
+            @ApiResponse(responseCode = "302", description = "Customer retrieved successfully"),
             @ApiResponse(responseCode = "404", description = "Customer not found")
     })
-    @GetMapping("/id")
-    public ResponseEntity<CustomerResponseDTO> getCustomerById(@RequestBody CustomerRequestDTO customer) {
-        return ResponseEntity.ok(toCustomerResponseDTO(customerService.getCustomerById(customer.getId())));
+    @PostMapping("/id")
+    public Mono<ResponseEntity<CustomerResponseDTO>> getCustomerById(@RequestBody CustomerRequestDTO customer) {
+        return customerService.getCustomerById(toCustomer(Mono.just(customer))
+                        .map(Customer::getId))
+                .flatMap(customerEntity -> toCustomerResponseDTO(Mono.just(customerEntity))
+                        .map(customerResponseDTO -> ResponseEntity.status(HttpStatus.FOUND).body(customerResponseDTO)));
     }
 
     @Operation(summary = "Retrieve a customer by first name", description = "Get details of a customer by their first name")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Customer retrieved successfully"),
+            @ApiResponse(responseCode = "302", description = "Customer retrieved successfully"),
             @ApiResponse(responseCode = "404", description = "Customer not found")
     })
-    @GetMapping("/firstName")
-    public ResponseEntity<CustomerResponseDTO> getCustomerByFirstName(@RequestBody CustomerRequestDTO customer) {
-        return ResponseEntity.ok(toCustomerResponseDTO(customerService.getCustomerByFirstName(customer.getFirst_name())));
+    @PostMapping("/firstName")
+    public Mono<ResponseEntity<CustomerResponseDTO>> getCustomerByFirstName(@RequestBody CustomerRequestDTO customer) {
+        return customerService.getCustomerByFirstName(toCustomer(Mono.just(customer))
+                        .map(Customer::getFirstName))
+                .flatMap(customerEntity -> toCustomerResponseDTO(Mono.just(customerEntity))
+                        .map(customerResponseDTO -> ResponseEntity.status(HttpStatus.FOUND).body(customerResponseDTO)));
     }
 
     @Operation(summary = "Retrieve a customer by last name", description = "Get details of a customer by their last name")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Customer retrieved successfully"),
+            @ApiResponse(responseCode = "302", description = "Customer retrieved successfully"),
             @ApiResponse(responseCode = "404", description = "Customer not found")
     })
-    @GetMapping("/lastName")
-    public ResponseEntity<CustomerResponseDTO> getCustomerByLastName(@RequestBody CustomerRequestDTO customer) {
-        return ResponseEntity.ok(toCustomerResponseDTO(customerService.getCustomerByFirstName(customer.getLast_name())));
+    @PostMapping("/lastName")
+    public Mono<ResponseEntity<CustomerResponseDTO>> getCustomerByLastName(@RequestBody CustomerRequestDTO customer) {
+        return customerService.getCustomerByLastName(toCustomer(Mono.just(customer))
+                        .map(Customer::getLastName))
+                .flatMap(customerEntity -> toCustomerResponseDTO(Mono.just(customerEntity))
+                        .map(customerResponseDTO -> ResponseEntity.status(HttpStatus.FOUND).body(customerResponseDTO)));
     }
 
     @Operation(summary = "Retrieve a customer by email", description = "Get details of a customer by their email address")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Customer retrieved successfully"),
+            @ApiResponse(responseCode = "302", description = "Customer retrieved successfully"),
             @ApiResponse(responseCode = "404", description = "Customer not found")
     })
-    @GetMapping("/email")
-    public ResponseEntity<CustomerResponseDTO> getCustomerByEmail(@RequestBody CustomerRequestDTO customer) {
-        return ResponseEntity.ok(toCustomerResponseDTO(customerService.getCustomerByEmail(customer.getEmail())));
+    @PostMapping("/email")
+    public Mono<ResponseEntity<CustomerResponseDTO>> getCustomerByEmail(@RequestBody CustomerRequestDTO customer) {
+        return customerService.getCustomerByEmail(toCustomer(Mono.just(customer))
+                        .map(Customer::getEmail))
+                .flatMap(customerEntity -> toCustomerResponseDTO(Mono.just(customerEntity))
+                        .map(customerResponseDTO -> ResponseEntity.status(HttpStatus.FOUND).body(customerResponseDTO)));
     }
 
     @Operation(summary = "Retrieve all customers", description = "Get a list of all customers in the system")
@@ -83,8 +98,13 @@ public class CustomerController {
             @ApiResponse(responseCode = "200", description = "Customers retrieved successfully")
     })
     @GetMapping
-    public ResponseEntity<List<CustomerResponseDTO>> getAllCustomers() {
-        return ResponseEntity.ok(customerService.getAllCustomers().stream().map(DTOResponseMapper::toCustomerResponseDTO).toList());
+    public Mono<ResponseEntity<Flux<CustomerResponseDTO>>> getAllCustomers() {
+        return Mono.just(
+                ResponseEntity.ok(
+                        customerService.getAllCustomers()
+                                .flatMap(customerEntity -> toCustomerResponseDTO(Mono.just(customerEntity)))
+                )
+        );
     }
 
     @Operation(summary = "Update a customer", description = "Update details of an existing customer")
@@ -94,8 +114,10 @@ public class CustomerController {
             @ApiResponse(responseCode = "404", description = "Customer not found")
     })
     @PutMapping
-    public ResponseEntity<CustomerResponseDTO> updateCustomer(@RequestBody CustomerRequestDTO customer) {
-        return ResponseEntity.ok(toCustomerResponseDTO(customerService.updateCustomer(toCustomer(customer))));
+    public Mono<ResponseEntity<CustomerResponseDTO>> updateCustomer(@RequestBody CustomerRequestDTO customer) {
+        return customerService.updateCustomer(toCustomer(Mono.just(customer)))
+                .flatMap(customerEntity -> toCustomerResponseDTO(Mono.just(customerEntity))
+                        .map(customerResponseDTO -> ResponseEntity.status(HttpStatus.OK).body(customerResponseDTO)));
     }
 
     @Operation(summary = "Delete a customer", description = "Remove a customer from the system by their ID")
@@ -104,8 +126,12 @@ public class CustomerController {
             @ApiResponse(responseCode = "404", description = "Customer not found")
     })
     @DeleteMapping
-    public ResponseEntity<Void> deleteCustomer(@RequestBody CustomerRequestDTO customer) {
-        customerService.deleteCustomer(customerService.getCustomerById(customer.getId()));
-        return ResponseEntity.noContent().build();
+    public Mono<ResponseEntity<Void>> deleteCustomer(@RequestBody CustomerRequestDTO customer) {
+        return toCustomer(Mono.just(customer)) // Convierte el DTO a la entidad Account
+                .flatMap(customerEntity ->
+                        customerService.deleteCustomer(Mono.just(customerEntity.getId()))
+                                .thenReturn(ResponseEntity.noContent().<Void>build())
+                                .onErrorResume(e -> Mono.just(ResponseEntity.notFound().build()))
+                );
     }
 }

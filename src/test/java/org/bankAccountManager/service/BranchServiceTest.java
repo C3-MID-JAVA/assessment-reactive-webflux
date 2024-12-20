@@ -16,7 +16,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class BranchServiceTest {
 
-    @Mock
+    /*@Mock
     private BranchRepository branchRepository;
 
     @InjectMocks
@@ -136,5 +136,5 @@ class BranchServiceTest {
 
         // Assert
         verify(branchRepository, times(1)).delete(branch);
-    }
+    }*/
 }

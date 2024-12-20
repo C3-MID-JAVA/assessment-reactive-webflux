@@ -1,5 +1,6 @@
 package org.bankAccountManager.exception;
 
+import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -11,6 +12,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -41,7 +43,11 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(NullPointerException.class)
     public ResponseEntity<String> handleNullPointerException(NullPointerException ex) {
-        String message = "An unexpected error occurred. Please contact support.";
+        String message = "An unexpected error occurred. Please contact support."
+                + ex.getClass().getName()
+                + ex.getCause()
+                + ex.getMessage()
+                + Arrays.toString(ex.getStackTrace());
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(message);
     }
 
@@ -67,7 +73,16 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<String> handleGenericException(Exception ex) {
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An unexpected error occurred: " + ex.getMessage());
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An unexpected error occurred: "
+                + ex.getMessage()
+                + ". Please contact support."
+                + ex.getClass().getName()
+                + ex.getCause());
+    }
+
+    @ExceptionHandler(InvalidFormatException.class)
+    public ResponseEntity<String> handleInvalidFormatException(InvalidFormatException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Error de deserialización: " + ex.getMessage());
     }
 
     /*@ExceptionHandler(TransientPropertyValueException.class)

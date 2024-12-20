@@ -3,7 +3,14 @@ package org.bankAccountManager.DTO.request;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import lombok.*;
 
+@Setter
+@Getter
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class BranchRequestDTO {
     private int id;
     @NotNull(message = "Branch name is required")
@@ -17,46 +24,4 @@ public class BranchRequestDTO {
     @NotNull(message = "Branch phone is required")
     @NotBlank(message = "Branch phone cannot be blank")
     private String phone;
-
-    public BranchRequestDTO(String address, int id, String name, String phone) {
-        this.address = address;
-        this.id = id;
-        this.name = name;
-        this.phone = phone;
-    }
-
-    public BranchRequestDTO() {
-    }
-
-    public String getAddress() {
-        return address;
-    }
-
-    public void setAddress(String address) {
-        this.address = address;
-    }
-
-    public int getId() {
-        return id;
-    }
-
-    public void setId(int id) {
-        this.id = id;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getPhone() {
-        return phone;
-    }
-
-    public void setPhone(String phone) {
-        this.phone = phone;
-    }
 }

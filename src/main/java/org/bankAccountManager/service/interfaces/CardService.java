@@ -1,23 +1,24 @@
 package org.bankAccountManager.service.interfaces;
 
+import org.bankAccountManager.entity.Account;
 import org.bankAccountManager.entity.Card;
-
-import java.util.List;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 public interface CardService {
-    Card createCard(Card card);
+    Mono<Card> createCard(Mono<Card> card);
 
-    Card getCardById(int id);
+    Mono<Card> getCardById(Mono<Integer> id);
 
-    Card getCardByNumber(String card_number);
+    Mono<Card> getCardByNumber(Mono<String> card_number);
 
-    List<Card> getAllCards();
+    Flux<Card> getAllCards();
 
-    List<Card> getCardsByAccountId(int account_id);
+    Flux<Card> getCardsByAccount(Mono<Account> account);
 
-    List<Card> getCardsByType(String card_type);
+    Flux<Card> getCardsByType(Mono<String> card_type);
 
-    Card updateCard(Card card);
+    Mono<Card> updateCard(Mono<Card> card);
 
-    void deleteCard(Card card);
+    Mono<Void> deleteCard(Mono<Integer> id);
 }

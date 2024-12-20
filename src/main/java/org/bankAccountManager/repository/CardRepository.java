@@ -1,20 +1,22 @@
 package org.bankAccountManager.repository;
 
 import org.bankAccountManager.entity.Card;
-import org.springframework.data.mongodb.repository.MongoRepository;
+import org.springframework.data.mongodb.repository.ReactiveMongoRepository;
 import org.springframework.stereotype.Repository;
-
-import java.util.List;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 @Repository
-public interface CardRepository extends MongoRepository<Card, Integer> {
-    Card findCardById(int id);
+public interface CardRepository extends ReactiveMongoRepository<Card, Integer> {
+    Mono<Card> findCardById(int id);
 
-    Boolean existsById(int id);
+    Mono<Boolean> existsById(int id);
 
-    Card findCardByCardNumber(String card_number);
+    Mono<Card> findCardByCardNumber(String card_number);
 
-    List<Card> findAll();
+    Flux<Card> findAll();
 
-    List<Card> findCardsByCardType(String card_type);
+    Flux<Card> findCardsByCardType(String card_type);
+
+    Mono<Void> deleteById(int id);
 }

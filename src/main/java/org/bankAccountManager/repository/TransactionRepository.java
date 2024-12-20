@@ -1,28 +1,32 @@
 package org.bankAccountManager.repository;
 
+import org.bankAccountManager.entity.Account;
 import org.bankAccountManager.entity.Branch;
 import org.bankAccountManager.entity.Transaction;
-import org.springframework.data.mongodb.repository.MongoRepository;
+import org.springframework.data.mongodb.repository.ReactiveMongoRepository;
 import org.springframework.stereotype.Repository;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
-import java.sql.Timestamp;
-import java.util.List;
+import java.time.LocalDateTime;
 
 @Repository
-public interface TransactionRepository extends MongoRepository<Transaction, Long> {
-    Transaction findTransactionById(int id);
+public interface TransactionRepository extends ReactiveMongoRepository<Transaction, Long> {
+    Mono<Transaction> findTransactionById(int id);
 
-    Boolean existsById(int id);
+    Mono<Boolean> existsById(int id);
 
-    List<Transaction> findAll();
+    Flux<Transaction> findAll();
 
-    List<Transaction> findTransactionsByDestinationAccountId(int destination_account_id);
+    Flux<Transaction> findTransactionsByDestinationAccount(Account destination_account);
 
-    List<Transaction> findTransactionsBySourceAccountId(int source_account_id);
+    Flux<Transaction> findTransactionsBySourceAccount(Account source_account);
 
-    List<Transaction> findTransactionsByBranches(List<Branch> branches);
+    Mono<Transaction> findTransactionByBranch(Branch branch);
 
-    List<Transaction> findTransactionsByDate(Timestamp date);
+    Flux<Transaction> findTransactionsByDate(LocalDateTime date);
 
-    List<Transaction> findTransactionsByType(String type);
+    Flux<Transaction> findTransactionsByType(String type);
+
+    Mono<Void> deleteById(int id);
 }

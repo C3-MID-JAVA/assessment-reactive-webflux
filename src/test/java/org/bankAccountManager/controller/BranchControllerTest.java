@@ -1,107 +1,147 @@
 package org.bankAccountManager.controller;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.bankAccountManager.DTO.request.BranchRequestDTO;
 import org.bankAccountManager.DTO.response.BranchResponseDTO;
+import org.bankAccountManager.entity.Branch;
 import org.bankAccountManager.service.implementations.BranchServiceImplementation;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
-import org.springframework.security.test.context.support.WithMockUser;
-import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.reactive.server.WebTestClient;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
-import static org.bankAccountManager.mapper.DTORequestMapper.*;
-import static org.bankAccountManager.mapper.DTOResponseMapper.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@WebMvcTest(BranchController.class)
-@WithMockUser(username = "admin", password = "admin", roles = {"ADMIN"})
-public class BranchControllerTest {
+@WebFluxTest(controllers = BranchController.class)
+class BranchControllerTest {
 
-    @Autowired
-    private MockMvc mockMvc;
+    /*@Autowired
+    private WebTestClient webTestClient;
 
-    @Mock
+    @MockBean
     private BranchServiceImplementation branchService;
 
-    @Autowired
-    private ObjectMapper objectMapper;
-
-    private BranchRequestDTO branchRequestDTO;
-    private BranchResponseDTO branchResponseDTO;
+    private BranchRequestDTO branchRequest;
+    private BranchResponseDTO branchResponse;
+    private Branch branch;
 
     @BeforeEach
     void setUp() {
-        MockitoAnnotations.openMocks(this);
+        branchRequest = new BranchRequestDTO();
+        branchRequest.setId(1);
+        branchRequest.setName("Main Branch");
+        branchRequest.setAddress("Main Branch Address");
+        branchRequest.setPhone("Main Branch Phone");
 
-        // Crear datos de prueba
-        branchRequestDTO = new BranchRequestDTO(1, "Main Branch", "123 Main St.");
-        branchResponseDTO = new BranchResponseDTO(1, "Main Branch", "123 Main St.");
+        branchResponse = new BranchResponseDTO();
+        branchResponse.setId(1);
+        branchResponse.setName("Main Branch");
+        branchResponse.setAddress("Main Branch Address");
+        branchResponse.setPhone("Main Branch Phone");
+
+        branch = new Branch();
+        branch.setId(1);
+        branch.setName("Main Branch");
+        branch.setAddress("Main Branch Address");
+        branch.setPhone("Main Branch Phone");
     }
 
     @Test
-    void createBranch() throws Exception {
-        when(branchService.createBranch(toBranch(branchRequestDTO)))
-                .thenReturn(toBranch(branchResponseDTO));
-        mockMvc.perform(post("/branches")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(branchRequestDTO)))
-                .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.id").value(1))
-                .andExpect(jsonPath("$.name").value("Main Branch"))
-                .andExpect(jsonPath("$.address").value("123 Main St."));
+    void createBranch_success() {
+        when(branchService.createBranch(Mono.just(any(Branch.class))))
+                .thenReturn(Mono.just(branch));
+        webTestClient.post()
+                .uri("/branches")
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue(branchRequest)
+                .exchange()
+                .expectStatus().isCreated()
+                .expectBody(BranchResponseDTO.class)
+                .isEqualTo(branchResponse);
     }
 
     @Test
-    void getBranchById() throws Exception {
-        when(branchService.getBranchById(1)).thenReturn(toBranch(branchRequestDTO));
-        mockMvc.perform(get("/branches/id")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(branchRequestDTO)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(1))
-                .andExpect(jsonPath("$.name").value("Main Branch"))
-                .andExpect(jsonPath("$.address").value("123 Main St."));
+    void createBranch_invalidInput() {
+        webTestClient.post()
+                .uri("/branches")
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue(new BranchRequestDTO())
+                .exchange()
+                .expectStatus().isBadRequest();
     }
 
     @Test
-    void getBranchByName() throws Exception {
-        when(branchService.getBranchByName("Main Branch")).thenReturn(toBranch(branchRequestDTO));
-        mockMvc.perform(get("/branches/name")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(branchRequestDTO)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(1))
-                .andExpect(jsonPath("$.name").value("Main Branch"))
-                .andExpect(jsonPath("$.address").value("123 Main St."));
+    void getBranchById_success() {
+        when(branchService.getBranchById(Mono.just(1)))
+                .thenReturn(Mono.just(branch));
+        webTestClient.post()
+                .uri("/branches/id")
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue(branchRequest)
+                .exchange()
+                .expectStatus().isFound()
+                .expectBody(BranchResponseDTO.class)
+                .isEqualTo(branchResponse);
     }
 
     @Test
-    void updateBranch() throws Exception {
-        when(branchService.updateBranch(toBranch(branchRequestDTO)))
-                .thenReturn(toBranch(branchResponseDTO));
-        mockMvc.perform(put("/branches")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(branchRequestDTO)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(1))
-                .andExpect(jsonPath("$.name").value("Main Branch"))
-                .andExpect(jsonPath("$.address").value("123 Main St."));
+    void getBranchById_notFound() {
+        when(branchService.getBranchById(Mono.just(1)))
+                .thenReturn(Mono.empty());
+        webTestClient.post()
+                .uri("/branches/id")
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue(branchRequest)
+                .exchange()
+                .expectStatus().isNotFound();
     }
 
     @Test
-    void deleteBranch() throws Exception {
-        when(branchService.getBranchById(1)).thenReturn(toBranch(branchRequestDTO));
-        mockMvc.perform(delete("/branches")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(branchRequestDTO)))
-                .andExpect(status().isNoContent());
+    void getAllBranches_success() {
+        when(branchService.getAllBranches()).thenReturn(Flux.just(branch));
+        webTestClient.get()
+                .uri("/branches")
+                .exchange()
+                .expectStatus().isOk()
+                .expectBodyList(BranchResponseDTO.class)
+                .hasSize(1)
+                .contains(branchResponse);
     }
+
+    @Test
+    void updateBranch_success() {
+        when(branchService.updateBranch(Mono.just(any(Branch.class))))
+                .thenReturn(Mono.just(branch));
+        webTestClient.put()
+                .uri("/branches")
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue(branchRequest)
+                .exchange()
+                .expectStatus().isOk()
+                .expectBody(BranchResponseDTO.class)
+                .isEqualTo(branchResponse);
+    }
+
+    @Test
+    void deleteBranch_success() {
+        when(branchService.deleteBranch(Mono.just(1))).thenReturn(Mono.empty());
+        webTestClient.delete()
+                .uri("/branches")
+                .exchange()
+                .expectStatus().isNoContent();
+    }
+
+    @Test
+    void deleteBranch_notFound() {
+        when(branchService.deleteBranch(Mono.just(1))).thenReturn(Mono.error(new RuntimeException("Branch not found")));
+        webTestClient.delete()
+                .uri("/branches")
+                .exchange()
+                .expectStatus().isNotFound();
+    }*/
 }

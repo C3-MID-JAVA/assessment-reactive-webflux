@@ -1,19 +1,19 @@
 package org.bankAccountManager.service.interfaces;
 
 import org.bankAccountManager.entity.Account;
-
-import java.util.List;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 public interface AccountService {
-    Account createAccount(Account account);
+    Mono<Account> createAccount(Mono<Account> account);
 
-    Account getAccountById(int id);
+    Mono<Account> getAccountById(Mono<Integer> id);
 
-    List<Account> getAccountsByCustomerId(int customer_id);
+    Flux<Account> getAccountsByCustomerId(Mono<Integer> customer_id);
 
-    List<Account> getAllAccounts();
+    Flux<Account> getAllAccounts();
 
-    Account updateAccount(Account account);
+    Mono<Account> updateAccount(Mono<Account> account);
 
-    void deleteAccount(Account account);
+    Mono<Void> deleteAccount(Mono<Integer> id);
 }
