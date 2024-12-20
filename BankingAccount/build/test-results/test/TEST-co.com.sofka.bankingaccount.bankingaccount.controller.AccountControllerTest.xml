@@ -1,0 +1,207 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="co.com.sofka.bankingaccount.bankingaccount.controller.AccountControllerTest" tests="1" skipped="0" failures="1" errors="0" timestamp="2024-12-20T16:31:40" hostname="INFS-ECU-LT1136" time="0.37">
+  <properties/>
+  <testcase name="testCreateBankAccount()" classname="co.com.sofka.bankingaccount.bankingaccount.controller.AccountControllerTest" time="0.37">
+    <failure message="java.lang.AssertionError: Status expected:&lt;201 CREATED&gt; but was:&lt;500 INTERNAL_SERVER_ERROR&gt;" type="java.lang.AssertionError">java.lang.AssertionError: Status expected:&lt;201 CREATED&gt; but was:&lt;500 INTERNAL_SERVER_ERROR&gt;
+	at org.springframework.test.util.AssertionErrors.fail(AssertionErrors.java:61)
+	at org.springframework.test.util.AssertionErrors.assertEquals(AssertionErrors.java:128)
+	at org.springframework.test.web.reactive.server.StatusAssertions.lambda$assertStatusAndReturn$4(StatusAssertions.java:236)
+	at org.springframework.test.web.reactive.server.ExchangeResult.assertWithDiagnostics(ExchangeResult.java:232)
+	at org.springframework.test.web.reactive.server.StatusAssertions.assertStatusAndReturn(StatusAssertions.java:236)
+	at org.springframework.test.web.reactive.server.StatusAssertions.isCreated(StatusAssertions.java:75)
+	at co.com.sofka.bankingaccount.bankingaccount.controller.AccountControllerTest.testCreateBankAccount(AccountControllerTest.java:65)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:568)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+</failure>
+  </testcase>
+  <system-out><![CDATA[11:31:35.644 [Test worker] INFO org.springframework.test.context.support.AnnotationConfigContextLoaderUtils -- Could not detect default configuration classes for test class [co.com.sofka.bankingaccount.bankingaccount.controller.AccountControllerTest]: AccountControllerTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+11:31:35.791 [Test worker] INFO org.springframework.boot.test.context.SpringBootTestContextBootstrapper -- Found @SpringBootConfiguration co.com.sofka.bankingaccount.bankingaccount.BankingAccountApplication for test class co.com.sofka.bankingaccount.bankingaccount.controller.AccountControllerTest
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::                (v3.4.0)
+
+2024-12-20T11:31:37.140-05:00  INFO 20772 --- [BankingAccount] [    Test worker] c.c.s.b.b.c.AccountControllerTest        : Starting AccountControllerTest using Java 17.0.12 with PID 20772 (started by santiago.delsalto in C:\Users\santiago.delsalto\IdeaProjects\BankingAccount)
+2024-12-20T11:31:37.144-05:00  INFO 20772 --- [BankingAccount] [    Test worker] c.c.s.b.b.c.AccountControllerTest        : No active profile set, falling back to 1 default profile: "default"
+2024-12-20T11:31:37.954-05:00  INFO 20772 --- [BankingAccount] [    Test worker] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data Reactive MongoDB repositories in DEFAULT mode.
+2024-12-20T11:31:38.120-05:00  INFO 20772 --- [BankingAccount] [    Test worker] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 147 ms. Found 2 Reactive MongoDB repository interfaces.
+2024-12-20T11:31:38.867-05:00  INFO 20772 --- [BankingAccount] [    Test worker] org.mongodb.driver.client                : MongoClient with metadata {"driver": {"name": "mongo-java-driver|reactive-streams|spring-boot", "version": "5.2.1"}, "os": {"type": "Windows", "name": "Windows 11", "architecture": "amd64", "version": "10.0"}, "platform": "Java/Oracle Corporation/17.0.12+8-LTS-286"} created with settings MongoClientSettings{readPreference=primary, writeConcern=WriteConcern{w=null, wTimeout=null ms, journal=null}, retryWrites=true, retryReads=true, readConcern=ReadConcern{level=null}, credential=MongoCredential{mechanism=null, userName='santyrdse', source='admin', password=<hidden>, mechanismProperties=<hidden>}, transportSettings=NettyTransportSettings{eventLoopGroup=io.netty.channel.nio.NioEventLoopGroup@7a34c1f6, socketChannelClass=null, allocator=null, sslContext=null}, commandListeners=[], codecRegistry=ProvidersCodecRegistry{codecProviders=[ValueCodecProvider{}, BsonValueCodecProvider{}, DBRefCodecProvider{}, DBObjectCodecProvider{}, DocumentCodecProvider{}, CollectionCodecProvider{}, IterableCodecProvider{}, MapCodecProvider{}, GeoJsonCodecProvider{}, GridFSFileCodecProvider{}, Jsr310CodecProvider{}, JsonObjectCodecProvider{}, BsonCodecProvider{}, EnumCodecProvider{}, com.mongodb.client.model.mql.ExpressionCodecProvider@6e9f8160, com.mongodb.Jep395RecordCodecProvider@3e998033, com.mongodb.KotlinCodecProvider@e1a150c]}, loggerSettings=LoggerSettings{maxDocumentLength=1000}, clusterSettings={hosts=[127.0.0.1:27017], srvHost=cluster-sofka.mwjvo.mongodb.net, srvServiceName=mongodb, mode=MULTIPLE, requiredClusterType=REPLICA_SET, requiredReplicaSetName='atlas-581bdn-shard-0', serverSelector='null', clusterListeners='[]', serverSelectionTimeout='30000 ms', localThreshold='15 ms'}, socketSettings=SocketSettings{connectTimeoutMS=10000, readTimeoutMS=0, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, password=null}}, heartbeatSocketSettings=SocketSettings{connectTimeoutMS=10000, readTimeoutMS=10000, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, password=null}}, connectionPoolSettings=ConnectionPoolSettings{maxSize=100, minSize=0, maxWaitTimeMS=120000, maxConnectionLifeTimeMS=0, maxConnectionIdleTimeMS=0, maintenanceInitialDelayMS=0, maintenanceFrequencyMS=60000, connectionPoolListeners=[], maxConnecting=2}, serverSettings=ServerSettings{heartbeatFrequencyMS=10000, minHeartbeatFrequencyMS=500, serverMonitoringMode=AUTO, serverListeners='[]', serverMonitorListeners='[]'}, sslSettings=SslSettings{enabled=true, invalidHostNameAllowed=false, context=null}, applicationName='null', compressorList=[], uuidRepresentation=JAVA_LEGACY, serverApi=null, autoEncryptionSettings=null, dnsClient=null, inetAddressResolver=null, contextProvider=null, timeoutMS=null}
+2024-12-20T11:31:38.896-05:00  INFO 20772 --- [BankingAccount] [jvo.mongodb.net] org.mongodb.driver.cluster               : Adding discovered server cluster-sofka-shard-00-01.mwjvo.mongodb.net:27017 to client view of cluster
+2024-12-20T11:31:38.933-05:00  INFO 20772 --- [BankingAccount] [jvo.mongodb.net] org.mongodb.driver.cluster               : Adding discovered server cluster-sofka-shard-00-02.mwjvo.mongodb.net:27017 to client view of cluster
+2024-12-20T11:31:38.935-05:00  INFO 20772 --- [BankingAccount] [jvo.mongodb.net] org.mongodb.driver.cluster               : Adding discovered server cluster-sofka-shard-00-00.mwjvo.mongodb.net:27017 to client view of cluster
+2024-12-20T11:31:39.874-05:00  INFO 20772 --- [BankingAccount] [ngodb.net:27017] org.mongodb.driver.cluster               : Monitor thread successfully connected to server with description ServerDescription{address=cluster-sofka-shard-00-02.mwjvo.mongodb.net:27017, type=REPLICA_SET_PRIMARY, cryptd=false, state=CONNECTED, ok=true, minWireVersion=0, maxWireVersion=25, maxDocumentSize=16777216, logicalSessionTimeoutMinutes=30, roundTripTimeNanos=462141200, minRoundTripTimeNanos=0, setName='atlas-581bdn-shard-0', canonicalAddress=cluster-sofka-shard-00-02.mwjvo.mongodb.net:27017, hosts=[cluster-sofka-shard-00-00.mwjvo.mongodb.net:27017, cluster-sofka-shard-00-01.mwjvo.mongodb.net:27017, cluster-sofka-shard-00-02.mwjvo.mongodb.net:27017], passives=[], arbiters=[], primary='cluster-sofka-shard-00-02.mwjvo.mongodb.net:27017', tagSet=TagSet{[Tag{name='availabilityZone', value='use1-az4'}, Tag{name='diskState', value='READY'}, Tag{name='nodeType', value='ELECTABLE'}, Tag{name='provider', value='AWS'}, Tag{name='region', value='US_EAST_1'}, Tag{name='workloadType', value='OPERATIONAL'}]}, electionId=7fffffff00000000000001b0, setVersion=145, topologyVersion=TopologyVersion{processId=67634003e7859dd03af46ccd, counter=6}, lastWriteDate=Fri Dec 20 11:32:05 ECT 2024, lastUpdateTimeNanos=166930495640300}
+2024-12-20T11:31:39.875-05:00  INFO 20772 --- [BankingAccount] [ngodb.net:27017] org.mongodb.driver.cluster               : Monitor thread successfully connected to server with description ServerDescription{address=cluster-sofka-shard-00-01.mwjvo.mongodb.net:27017, type=REPLICA_SET_SECONDARY, cryptd=false, state=CONNECTED, ok=true, minWireVersion=0, maxWireVersion=25, maxDocumentSize=16777216, logicalSessionTimeoutMinutes=30, roundTripTimeNanos=462347700, minRoundTripTimeNanos=0, setName='atlas-581bdn-shard-0', canonicalAddress=cluster-sofka-shard-00-01.mwjvo.mongodb.net:27017, hosts=[cluster-sofka-shard-00-00.mwjvo.mongodb.net:27017, cluster-sofka-shard-00-01.mwjvo.mongodb.net:27017, cluster-sofka-shard-00-02.mwjvo.mongodb.net:27017], passives=[], arbiters=[], primary='cluster-sofka-shard-00-02.mwjvo.mongodb.net:27017', tagSet=TagSet{[Tag{name='availabilityZone', value='use1-az2'}, Tag{name='diskState', value='READY'}, Tag{name='nodeType', value='ELECTABLE'}, Tag{name='provider', value='AWS'}, Tag{name='region', value='US_EAST_1'}, Tag{name='workloadType', value='OPERATIONAL'}]}, electionId=null, setVersion=145, topologyVersion=TopologyVersion{processId=6763423876862daa5fac9a3b, counter=3}, lastWriteDate=Fri Dec 20 11:32:05 ECT 2024, lastUpdateTimeNanos=166930495846700}
+2024-12-20T11:31:39.875-05:00  INFO 20772 --- [BankingAccount] [ngodb.net:27017] org.mongodb.driver.cluster               : Monitor thread successfully connected to server with description ServerDescription{address=cluster-sofka-shard-00-00.mwjvo.mongodb.net:27017, type=REPLICA_SET_SECONDARY, cryptd=false, state=CONNECTED, ok=true, minWireVersion=0, maxWireVersion=25, maxDocumentSize=16777216, logicalSessionTimeoutMinutes=30, roundTripTimeNanos=462960100, minRoundTripTimeNanos=0, setName='atlas-581bdn-shard-0', canonicalAddress=cluster-sofka-shard-00-00.mwjvo.mongodb.net:27017, hosts=[cluster-sofka-shard-00-00.mwjvo.mongodb.net:27017, cluster-sofka-shard-00-01.mwjvo.mongodb.net:27017, cluster-sofka-shard-00-02.mwjvo.mongodb.net:27017], passives=[], arbiters=[], primary='cluster-sofka-shard-00-02.mwjvo.mongodb.net:27017', tagSet=TagSet{[Tag{name='availabilityZone', value='use1-az1'}, Tag{name='diskState', value='READY'}, Tag{name='nodeType', value='ELECTABLE'}, Tag{name='provider', value='AWS'}, Tag{name='region', value='US_EAST_1'}, Tag{name='workloadType', value='OPERATIONAL'}]}, electionId=null, setVersion=145, topologyVersion=TopologyVersion{processId=676340e22417f49c67a46f1a, counter=4}, lastWriteDate=Fri Dec 20 11:32:05 ECT 2024, lastUpdateTimeNanos=166930496461500}
+2024-12-20T11:31:39.879-05:00  INFO 20772 --- [BankingAccount] [ngodb.net:27017] org.mongodb.driver.cluster               : Discovered replica set primary cluster-sofka-shard-00-02.mwjvo.mongodb.net:27017 with max election id 7fffffff00000000000001b0 and max set version 145
+2024-12-20T11:31:40.337-05:00  INFO 20772 --- [BankingAccount] [    Test worker] o.s.b.web.embedded.netty.NettyWebServer  : Netty started on port 54480 (http)
+2024-12-20T11:31:40.357-05:00  INFO 20772 --- [BankingAccount] [    Test worker] c.c.s.b.b.c.AccountControllerTest        : Started AccountControllerTest in 3.661 seconds (process running for 5.509)
+2024-12-20T11:31:40.670-05:00 ERROR 20772 --- [BankingAccount] [     parallel-1] o.s.w.s.adapter.HttpWebHandlerAdapter    : [24cb2a89] 500 Server Error for HTTP POST "/api/bankAccount"
+
+java.lang.NullPointerException: Cannot invoke "reactor.core.publisher.Mono.map(java.util.function.Function)" because the return value of "co.com.sofka.bankingaccount.bankingaccount.service.AccountService.createAccount(co.com.sofka.bankingaccount.bankingaccount.application.dto.request.CreateAccountRequestDTO)" is null
+	at co.com.sofka.bankingaccount.bankingaccount.controllers.AccountController.createBankAccount(AccountController.java:31) ~[main/:na]
+	Suppressed: reactor.core.publisher.FluxOnAssembly$OnAssemblyException: 
+Error has been observed at the following site(s):
+	*__checkpoint ⇢ HTTP POST "/api/bankAccount" [ExceptionHandlingWebHandler]
+Original Stack Trace:
+		at co.com.sofka.bankingaccount.bankingaccount.controllers.AccountController.createBankAccount(AccountController.java:31) ~[main/:na]
+		at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method) ~[na:na]
+		at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77) ~[na:na]
+		at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43) ~[na:na]
+		at java.base/java.lang.reflect.Method.invoke(Method.java:568) ~[na:na]
+		at org.springframework.web.reactive.result.method.InvocableHandlerMethod.lambda$invoke$0(InvocableHandlerMethod.java:199) ~[spring-webflux-6.2.0.jar:6.2.0]
+		at reactor.core.publisher.MonoFlatMap$FlatMapMain.onNext(MonoFlatMap.java:132) ~[reactor-core-3.7.0.jar:3.7.0]
+		at reactor.core.publisher.MonoZip$ZipCoordinator.signal(MonoZip.java:297) ~[reactor-core-3.7.0.jar:3.7.0]
+		at reactor.core.publisher.MonoZip$ZipInner.onNext(MonoZip.java:478) ~[reactor-core-3.7.0.jar:3.7.0]
+		at reactor.core.publisher.MonoPeekTerminal$MonoTerminalPeekSubscriber.onNext(MonoPeekTerminal.java:180) ~[reactor-core-3.7.0.jar:3.7.0]
+		at reactor.core.publisher.FluxDefaultIfEmpty$DefaultIfEmptySubscriber.onNext(FluxDefaultIfEmpty.java:122) ~[reactor-core-3.7.0.jar:3.7.0]
+		at reactor.core.publisher.FluxSwitchIfEmpty$SwitchIfEmptySubscriber.onNext(FluxSwitchIfEmpty.java:74) ~[reactor-core-3.7.0.jar:3.7.0]
+		at reactor.core.publisher.FluxOnErrorResume$ResumeSubscriber.onNext(FluxOnErrorResume.java:79) ~[reactor-core-3.7.0.jar:3.7.0]
+		at reactor.core.publisher.MonoFlatMap$FlatMapMain.onNext(MonoFlatMap.java:158) ~[reactor-core-3.7.0.jar:3.7.0]
+		at reactor.core.publisher.FluxContextWrite$ContextWriteSubscriber.onNext(FluxContextWrite.java:107) ~[reactor-core-3.7.0.jar:3.7.0]
+		at reactor.core.publisher.FluxMapFuseable$MapFuseableConditionalSubscriber.onNext(FluxMapFuseable.java:299) ~[reactor-core-3.7.0.jar:3.7.0]
+		at reactor.core.publisher.FluxFilterFuseable$FilterFuseableConditionalSubscriber.onNext(FluxFilterFuseable.java:337) ~[reactor-core-3.7.0.jar:3.7.0]
+		at reactor.core.publisher.Operators$BaseFluxToMonoOperator.completePossiblyEmpty(Operators.java:2097) ~[reactor-core-3.7.0.jar:3.7.0]
+		at reactor.core.publisher.MonoCollect$CollectSubscriber.onComplete(MonoCollect.java:145) ~[reactor-core-3.7.0.jar:3.7.0]
+		at reactor.core.publisher.FluxPeekFuseable$PeekFuseableSubscriber.onComplete(FluxPeekFuseable.java:277) ~[reactor-core-3.7.0.jar:3.7.0]
+		at reactor.core.publisher.FluxPeekFuseable$PeekFuseableSubscriber.onComplete(FluxPeekFuseable.java:277) ~[reactor-core-3.7.0.jar:3.7.0]
+		at reactor.core.publisher.FluxPeekFuseable$PeekFuseableSubscriber.onComplete(FluxPeekFuseable.java:277) ~[reactor-core-3.7.0.jar:3.7.0]
+		at reactor.core.publisher.FluxPeekFuseable$PeekFuseableSubscriber.onComplete(FluxPeekFuseable.java:277) ~[reactor-core-3.7.0.jar:3.7.0]
+		at reactor.core.publisher.FluxPeekFuseable$PeekFuseableSubscriber.onComplete(FluxPeekFuseable.java:277) ~[reactor-core-3.7.0.jar:3.7.0]
+		at reactor.core.publisher.FluxContextWrite$ContextWriteSubscriber.onComplete(FluxContextWrite.java:126) ~[reactor-core-3.7.0.jar:3.7.0]
+		at reactor.core.publisher.Operators$ScalarSubscription.request(Operators.java:2573) ~[reactor-core-3.7.0.jar:3.7.0]
+		at reactor.core.publisher.FluxContextWrite$ContextWriteSubscriber.request(FluxContextWrite.java:136) ~[reactor-core-3.7.0.jar:3.7.0]
+		at reactor.core.publisher.FluxPeekFuseable$PeekFuseableSubscriber.request(FluxPeekFuseable.java:144) ~[reactor-core-3.7.0.jar:3.7.0]
+		at reactor.core.publisher.FluxPeekFuseable$PeekFuseableSubscriber.request(FluxPeekFuseable.java:144) ~[reactor-core-3.7.0.jar:3.7.0]
+		at reactor.core.publisher.FluxPeekFuseable$PeekFuseableSubscriber.request(FluxPeekFuseable.java:144) ~[reactor-core-3.7.0.jar:3.7.0]
+		at reactor.core.publisher.FluxPeekFuseable$PeekFuseableSubscriber.request(FluxPeekFuseable.java:144) ~[reactor-core-3.7.0.jar:3.7.0]
+		at reactor.core.publisher.FluxPeekFuseable$PeekFuseableSubscriber.request(FluxPeekFuseable.java:144) ~[reactor-core-3.7.0.jar:3.7.0]
+		at reactor.core.publisher.Operators$BaseFluxToMonoOperator.request(Operators.java:2067) ~[reactor-core-3.7.0.jar:3.7.0]
+		at reactor.core.publisher.FluxFilterFuseable$FilterFuseableConditionalSubscriber.request(FluxFilterFuseable.java:411) ~[reactor-core-3.7.0.jar:3.7.0]
+		at reactor.core.publisher.FluxMapFuseable$MapFuseableConditionalSubscriber.request(FluxMapFuseable.java:360) ~[reactor-core-3.7.0.jar:3.7.0]
+		at reactor.core.publisher.FluxContextWrite$ContextWriteSubscriber.request(FluxContextWrite.java:136) ~[reactor-core-3.7.0.jar:3.7.0]
+		at reactor.core.publisher.MonoFlatMap$FlatMapMain.request(MonoFlatMap.java:194) ~[reactor-core-3.7.0.jar:3.7.0]
+		at reactor.core.publisher.Operators$MultiSubscriptionSubscriber.set(Operators.java:2367) ~[reactor-core-3.7.0.jar:3.7.0]
+		at reactor.core.publisher.FluxOnErrorResume$ResumeSubscriber.onSubscribe(FluxOnErrorResume.java:74) ~[reactor-core-3.7.0.jar:3.7.0]
+		at reactor.core.publisher.MonoFlatMap$FlatMapMain.onSubscribe(MonoFlatMap.java:117) ~[reactor-core-3.7.0.jar:3.7.0]
+		at reactor.core.publisher.FluxContextWrite$ContextWriteSubscriber.onSubscribe(FluxContextWrite.java:101) ~[reactor-core-3.7.0.jar:3.7.0]
+		at reactor.core.publisher.FluxMapFuseable$MapFuseableConditionalSubscriber.onSubscribe(FluxMapFuseable.java:265) ~[reactor-core-3.7.0.jar:3.7.0]
+		at reactor.core.publisher.FluxFilterFuseable$FilterFuseableConditionalSubscriber.onSubscribe(FluxFilterFuseable.java:305) ~[reactor-core-3.7.0.jar:3.7.0]
+		at reactor.core.publisher.Operators$BaseFluxToMonoOperator.onSubscribe(Operators.java:2051) ~[reactor-core-3.7.0.jar:3.7.0]
+		at reactor.core.publisher.FluxPeekFuseable$PeekFuseableSubscriber.onSubscribe(FluxPeekFuseable.java:178) ~[reactor-core-3.7.0.jar:3.7.0]
+		at reactor.core.publisher.FluxPeekFuseable$PeekFuseableSubscriber.onSubscribe(FluxPeekFuseable.java:178) ~[reactor-core-3.7.0.jar:3.7.0]
+		at reactor.core.publisher.FluxPeekFuseable$PeekFuseableSubscriber.onSubscribe(FluxPeekFuseable.java:178) ~[reactor-core-3.7.0.jar:3.7.0]
+		at reactor.core.publisher.FluxPeekFuseable$PeekFuseableSubscriber.onSubscribe(FluxPeekFuseable.java:178) ~[reactor-core-3.7.0.jar:3.7.0]
+		at reactor.core.publisher.FluxPeekFuseable$PeekFuseableSubscriber.onSubscribe(FluxPeekFuseable.java:178) ~[reactor-core-3.7.0.jar:3.7.0]
+		at reactor.core.publisher.FluxContextWrite$ContextWriteSubscriber.onSubscribe(FluxContextWrite.java:101) ~[reactor-core-3.7.0.jar:3.7.0]
+		at reactor.core.publisher.MonoJust.subscribe(MonoJust.java:55) ~[reactor-core-3.7.0.jar:3.7.0]
+		at reactor.core.publisher.InternalMonoOperator.subscribe(InternalMonoOperator.java:76) ~[reactor-core-3.7.0.jar:3.7.0]
+		at reactor.core.publisher.MonoDeferContextual.subscribe(MonoDeferContextual.java:55) ~[reactor-core-3.7.0.jar:3.7.0]
+		at reactor.core.publisher.InternalMonoOperator.subscribe(InternalMonoOperator.java:76) ~[reactor-core-3.7.0.jar:3.7.0]
+		at reactor.core.publisher.MonoZip$ZipCoordinator.request(MonoZip.java:220) ~[reactor-core-3.7.0.jar:3.7.0]
+		at reactor.core.publisher.MonoFlatMap$FlatMapMain.request(MonoFlatMap.java:194) ~[reactor-core-3.7.0.jar:3.7.0]
+		at reactor.core.publisher.MonoIgnoreThen$ThenIgnoreMain.onSubscribe(MonoIgnoreThen.java:135) ~[reactor-core-3.7.0.jar:3.7.0]
+		at reactor.core.publisher.MonoFlatMap$FlatMapMain.onSubscribe(MonoFlatMap.java:117) ~[reactor-core-3.7.0.jar:3.7.0]
+		at reactor.core.publisher.MonoZip.subscribe(MonoZip.java:129) ~[reactor-core-3.7.0.jar:3.7.0]
+		at reactor.core.publisher.InternalMonoOperator.subscribe(InternalMonoOperator.java:76) ~[reactor-core-3.7.0.jar:3.7.0]
+		at reactor.core.publisher.MonoDefer.subscribe(MonoDefer.java:53) ~[reactor-core-3.7.0.jar:3.7.0]
+		at reactor.core.publisher.MonoIgnoreThen$ThenIgnoreMain.subscribeNext(MonoIgnoreThen.java:241) ~[reactor-core-3.7.0.jar:3.7.0]
+		at reactor.core.publisher.MonoIgnoreThen$ThenIgnoreMain.onComplete(MonoIgnoreThen.java:204) ~[reactor-core-3.7.0.jar:3.7.0]
+		at reactor.core.publisher.MonoFlatMap$FlatMapMain.onComplete(MonoFlatMap.java:189) ~[reactor-core-3.7.0.jar:3.7.0]
+		at reactor.core.publisher.Operators.complete(Operators.java:137) ~[reactor-core-3.7.0.jar:3.7.0]
+		at reactor.core.publisher.MonoZip.subscribe(MonoZip.java:121) ~[reactor-core-3.7.0.jar:3.7.0]
+		at reactor.core.publisher.Mono.subscribe(Mono.java:4576) ~[reactor-core-3.7.0.jar:3.7.0]
+		at reactor.core.publisher.MonoIgnoreThen$ThenIgnoreMain.subscribeNext(MonoIgnoreThen.java:265) ~[reactor-core-3.7.0.jar:3.7.0]
+		at reactor.core.publisher.MonoIgnoreThen.subscribe(MonoIgnoreThen.java:51) ~[reactor-core-3.7.0.jar:3.7.0]
+		at reactor.core.publisher.InternalMonoOperator.subscribe(InternalMonoOperator.java:76) ~[reactor-core-3.7.0.jar:3.7.0]
+		at reactor.core.publisher.MonoFlatMap$FlatMapMain.onNext(MonoFlatMap.java:165) ~[reactor-core-3.7.0.jar:3.7.0]
+		at reactor.core.publisher.FluxOnErrorResume$ResumeSubscriber.onNext(FluxOnErrorResume.java:79) ~[reactor-core-3.7.0.jar:3.7.0]
+		at reactor.core.publisher.FluxSwitchIfEmpty$SwitchIfEmptySubscriber.onNext(FluxSwitchIfEmpty.java:74) ~[reactor-core-3.7.0.jar:3.7.0]
+		at reactor.core.publisher.MonoNext$NextSubscriber.onNext(MonoNext.java:82) ~[reactor-core-3.7.0.jar:3.7.0]
+		at reactor.core.publisher.FluxConcatMapNoPrefetch$FluxConcatMapNoPrefetchSubscriber.innerNext(FluxConcatMapNoPrefetch.java:259) ~[reactor-core-3.7.0.jar:3.7.0]
+		at reactor.core.publisher.FluxConcatMap$ConcatMapInner.onNext(FluxConcatMap.java:865) ~[reactor-core-3.7.0.jar:3.7.0]
+		at reactor.core.publisher.FluxMapFuseable$MapFuseableSubscriber.onNext(FluxMapFuseable.java:129) ~[reactor-core-3.7.0.jar:3.7.0]
+		at reactor.core.publisher.MonoPeekTerminal$MonoTerminalPeekSubscriber.onNext(MonoPeekTerminal.java:180) ~[reactor-core-3.7.0.jar:3.7.0]
+		at reactor.core.publisher.Operators$ScalarSubscription.request(Operators.java:2571) ~[reactor-core-3.7.0.jar:3.7.0]
+		at reactor.core.publisher.MonoPeekTerminal$MonoTerminalPeekSubscriber.request(MonoPeekTerminal.java:139) ~[reactor-core-3.7.0.jar:3.7.0]
+		at reactor.core.publisher.FluxMapFuseable$MapFuseableSubscriber.request(FluxMapFuseable.java:171) ~[reactor-core-3.7.0.jar:3.7.0]
+		at reactor.core.publisher.Operators$MultiSubscriptionSubscriber.request(Operators.java:2331) ~[reactor-core-3.7.0.jar:3.7.0]
+		at reactor.core.publisher.FluxConcatMapNoPrefetch$FluxConcatMapNoPrefetchSubscriber.request(FluxConcatMapNoPrefetch.java:339) ~[reactor-core-3.7.0.jar:3.7.0]
+		at reactor.core.publisher.MonoNext$NextSubscriber.request(MonoNext.java:108) ~[reactor-core-3.7.0.jar:3.7.0]
+		at reactor.core.publisher.Operators$MultiSubscriptionSubscriber.set(Operators.java:2367) ~[reactor-core-3.7.0.jar:3.7.0]
+		at reactor.core.publisher.Operators$MultiSubscriptionSubscriber.onSubscribe(Operators.java:2241) ~[reactor-core-3.7.0.jar:3.7.0]
+		at reactor.core.publisher.MonoNext$NextSubscriber.onSubscribe(MonoNext.java:70) ~[reactor-core-3.7.0.jar:3.7.0]
+		at reactor.core.publisher.FluxConcatMapNoPrefetch$FluxConcatMapNoPrefetchSubscriber.onSubscribe(FluxConcatMapNoPrefetch.java:164) ~[reactor-core-3.7.0.jar:3.7.0]
+		at reactor.core.publisher.FluxIterable.subscribe(FluxIterable.java:201) ~[reactor-core-3.7.0.jar:3.7.0]
+		at reactor.core.publisher.FluxIterable.subscribe(FluxIterable.java:83) ~[reactor-core-3.7.0.jar:3.7.0]
+		at reactor.core.publisher.InternalMonoOperator.subscribe(InternalMonoOperator.java:76) ~[reactor-core-3.7.0.jar:3.7.0]
+		at reactor.core.publisher.MonoDefer.subscribe(MonoDefer.java:53) ~[reactor-core-3.7.0.jar:3.7.0]
+		at reactor.core.publisher.Mono.subscribe(Mono.java:4576) ~[reactor-core-3.7.0.jar:3.7.0]
+		at reactor.core.publisher.MonoIgnoreThen$ThenIgnoreMain.subscribeNext(MonoIgnoreThen.java:265) ~[reactor-core-3.7.0.jar:3.7.0]
+		at reactor.core.publisher.MonoIgnoreThen.subscribe(MonoIgnoreThen.java:51) ~[reactor-core-3.7.0.jar:3.7.0]
+		at reactor.core.publisher.Mono.subscribe(Mono.java:4576) ~[reactor-core-3.7.0.jar:3.7.0]
+		at reactor.core.publisher.Mono.subscribeWith(Mono.java:4642) ~[reactor-core-3.7.0.jar:3.7.0]
+		at reactor.core.publisher.Mono.subscribe(Mono.java:4542) ~[reactor-core-3.7.0.jar:3.7.0]
+		at reactor.core.publisher.Mono.subscribe(Mono.java:4478) ~[reactor-core-3.7.0.jar:3.7.0]
+		at org.springframework.test.web.reactive.server.HttpHandlerConnector.lambda$doConnect$2(HttpHandlerConnector.java:100) ~[spring-test-6.2.0.jar:6.2.0]
+		at org.springframework.mock.http.client.reactive.MockClientHttpRequest.lambda$writeWith$2(MockClientHttpRequest.java:128) ~[spring-test-6.2.0.jar:6.2.0]
+		at reactor.core.publisher.MonoDefer.subscribe(MonoDefer.java:45) ~[reactor-core-3.7.0.jar:3.7.0]
+		at reactor.core.publisher.Mono.subscribe(Mono.java:4576) ~[reactor-core-3.7.0.jar:3.7.0]
+		at reactor.core.publisher.FluxConcatIterable$ConcatIterableSubscriber.onComplete(FluxConcatIterable.java:148) ~[reactor-core-3.7.0.jar:3.7.0]
+		at reactor.core.publisher.FluxConcatIterable.subscribe(FluxConcatIterable.java:60) ~[reactor-core-3.7.0.jar:3.7.0]
+		at reactor.core.publisher.MonoFromFluxOperator.subscribe(MonoFromFluxOperator.java:83) ~[reactor-core-3.7.0.jar:3.7.0]
+		at reactor.core.publisher.MonoFlatMap$FlatMapMain.onNext(MonoFlatMap.java:165) ~[reactor-core-3.7.0.jar:3.7.0]
+		at reactor.core.publisher.FluxSwitchIfEmpty$SwitchIfEmptySubscriber.onNext(FluxSwitchIfEmpty.java:74) ~[reactor-core-3.7.0.jar:3.7.0]
+		at reactor.core.publisher.Operators$MonoInnerProducerBase.complete(Operators.java:2864) ~[reactor-core-3.7.0.jar:3.7.0]
+		at reactor.core.publisher.MonoSingle$SingleSubscriber.onComplete(MonoSingle.java:180) ~[reactor-core-3.7.0.jar:3.7.0]
+		at reactor.core.publisher.FluxMapFuseable$MapFuseableSubscriber.onComplete(FluxMapFuseable.java:152) ~[reactor-core-3.7.0.jar:3.7.0]
+		at reactor.core.publisher.Operators$ScalarSubscription.request(Operators.java:2573) ~[reactor-core-3.7.0.jar:3.7.0]
+		at reactor.core.publisher.FluxMapFuseable$MapFuseableSubscriber.request(FluxMapFuseable.java:171) ~[reactor-core-3.7.0.jar:3.7.0]
+		at reactor.core.publisher.MonoSingle$SingleSubscriber.doOnRequest(MonoSingle.java:103) ~[reactor-core-3.7.0.jar:3.7.0]
+		at reactor.core.publisher.Operators$MonoInnerProducerBase.request(Operators.java:2931) ~[reactor-core-3.7.0.jar:3.7.0]
+		at reactor.core.publisher.Operators$MultiSubscriptionSubscriber.set(Operators.java:2367) ~[reactor-core-3.7.0.jar:3.7.0]
+		at reactor.core.publisher.Operators$MultiSubscriptionSubscriber.onSubscribe(Operators.java:2241) ~[reactor-core-3.7.0.jar:3.7.0]
+		at reactor.core.publisher.MonoSingle$SingleSubscriber.onSubscribe(MonoSingle.java:115) ~[reactor-core-3.7.0.jar:3.7.0]
+		at reactor.core.publisher.FluxMapFuseable$MapFuseableSubscriber.onSubscribe(FluxMapFuseable.java:96) ~[reactor-core-3.7.0.jar:3.7.0]
+		at reactor.core.publisher.MonoJust.subscribe(MonoJust.java:55) ~[reactor-core-3.7.0.jar:3.7.0]
+		at reactor.core.publisher.FluxFromMonoOperator.subscribe(FluxFromMonoOperator.java:85) ~[reactor-core-3.7.0.jar:3.7.0]
+		at reactor.core.publisher.FluxDeferContextual.subscribe(FluxDeferContextual.java:57) ~[reactor-core-3.7.0.jar:3.7.0]
+		at reactor.core.publisher.Mono.subscribe(Mono.java:4576) ~[reactor-core-3.7.0.jar:3.7.0]
+		at reactor.core.publisher.Mono.subscribeWith(Mono.java:4642) ~[reactor-core-3.7.0.jar:3.7.0]
+		at reactor.core.publisher.Mono.subscribe(Mono.java:4542) ~[reactor-core-3.7.0.jar:3.7.0]
+		at reactor.core.publisher.Mono.subscribe(Mono.java:4478) ~[reactor-core-3.7.0.jar:3.7.0]
+		at org.springframework.test.web.reactive.server.HttpHandlerConnector.doConnect(HttpHandlerConnector.java:114) ~[spring-test-6.2.0.jar:6.2.0]
+		at org.springframework.test.web.reactive.server.HttpHandlerConnector.lambda$connect$0(HttpHandlerConnector.java:81) ~[spring-test-6.2.0.jar:6.2.0]
+		at reactor.core.publisher.MonoDefer.subscribe(MonoDefer.java:45) ~[reactor-core-3.7.0.jar:3.7.0]
+		at reactor.core.publisher.Mono.subscribe(Mono.java:4576) ~[reactor-core-3.7.0.jar:3.7.0]
+		at reactor.core.publisher.MonoSubscribeOn$SubscribeOnSubscriber.run(MonoSubscribeOn.java:126) ~[reactor-core-3.7.0.jar:3.7.0]
+		at reactor.core.scheduler.WorkerTask.call(WorkerTask.java:84) ~[reactor-core-3.7.0.jar:3.7.0]
+		at reactor.core.scheduler.WorkerTask.call(WorkerTask.java:37) ~[reactor-core-3.7.0.jar:3.7.0]
+		at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:264) ~[na:na]
+		at java.base/java.util.concurrent.ScheduledThreadPoolExecutor$ScheduledFutureTask.run(ScheduledThreadPoolExecutor.java:304) ~[na:na]
+		at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1136) ~[na:na]
+		at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:635) ~[na:na]
+		at java.base/java.lang.Thread.run(Thread.java:842) ~[na:na]
+
+2024-12-20T11:31:40.713-05:00 ERROR 20772 --- [BankingAccount] [    Test worker] o.s.t.w.reactive.server.ExchangeResult   : Request details for assertion failure:
+
+> POST /api/bankAccount
+> WebTestClient-Request-Id: [1]
+> Content-Type: [application/json]
+> Content-Length: [45]
+
+{"entitledUserName":"John Doe","balance":500}
+
+< 500 INTERNAL_SERVER_ERROR Internal Server Error
+< 
+
+0 bytes of content (unknown content-type).
+
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>
