@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -15,9 +16,8 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @RestController
-@RequestMapping("/v1/api/clients")
-@Tag(name = "Clients", description = "Endpoints for client management")
-@Validated
+@RequestMapping("/api/clients")
+@Tag(name = "Client Controller", description = "APIs for managing clients")
 public class ClientController {
 
     private final ClientService clientService;
@@ -29,12 +29,13 @@ public class ClientController {
     @Operation(summary = "Create a new client",
             description = "Registers a new client in the system.")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Client created successfully"),
+            @ApiResponse(responseCode = "201", description = "Client created successfully"),
             @ApiResponse(responseCode = "400", description = "Invalid request")
     })
     @PostMapping
     public ResponseEntity<Mono<ClientOutDTO>> saveClient(@Valid @RequestBody ClientInDTO clientInDTO) {
-        return ResponseEntity.ok(clientService.saveClient(clientInDTO));
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(clientService.saveClient(clientInDTO));
     }
 
     @Operation(summary = "Retrieve the list of all clients",
@@ -67,7 +68,7 @@ public class ClientController {
     })
     @PutMapping("/{id}")
     public ResponseEntity<Mono<ClientOutDTO>> updateClient(@PathVariable String id, @Valid @RequestBody ClientInDTO clientInDTO) {
-        return  ResponseEntity.ok(clientService.updateClient(id, clientInDTO));
+        return ResponseEntity.ok(clientService.updateClient(id, clientInDTO));
     }
 
     @Operation(summary = "Delete a client",
@@ -77,8 +78,10 @@ public class ClientController {
             @ApiResponse(responseCode = "404", description = "Client not found")
     })
     @DeleteMapping("/{id}")
-    public ResponseEntity<Mono<Void>> deleteClient(@PathVariable String id) {
-        clientService.deleteClient(id);
-        return ResponseEntity.noContent().build();
+    public Mono<ResponseEntity<Void>> deleteClient(@PathVariable String id) {
+        return clientService.deleteClient(id)
+                .then(Mono.just(ResponseEntity.noContent().build()));
     }
+
+
 }

@@ -9,6 +9,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
 
@@ -33,8 +34,9 @@ public class TransactionController {
                     @ApiResponse(responseCode = "500", description = "Internal server error", content = @Content)
             }
     )
-    public Mono<TransactionOutDTO> makeBranchDeposit(@RequestBody TransactionInDTO transactionInDTO) {
-        return transactionService.makeBranchDeposit(transactionInDTO);
+    public Mono<ResponseEntity<TransactionOutDTO>> makeBranchDeposit(@RequestBody TransactionInDTO transactionInDTO) {
+        return transactionService.makeBranchDeposit(transactionInDTO)
+                .map(transactionOutDTO -> ResponseEntity.status(HttpStatus.CREATED).body(transactionOutDTO));
     }
 
     @PostMapping("/deposito/cajero")
@@ -47,10 +49,10 @@ public class TransactionController {
                     @ApiResponse(responseCode = "500", description = "Internal server error", content = @Content)
             }
     )
-    public Mono<TransactionOutDTO> makeATMDeposit(@RequestBody TransactionInDTO transactionInDTO) {
-        return transactionService.makeATMDeposit(transactionInDTO);
+    public Mono<ResponseEntity<TransactionOutDTO>> makeATMDeposit(@RequestBody TransactionInDTO transactionInDTO) {
+        return transactionService.makeATMDeposit(transactionInDTO)
+                .map(transactionOutDTO -> ResponseEntity.status(HttpStatus.CREATED).body(transactionOutDTO));
     }
-
 
     @PostMapping("/deposito/otra-cuenta")
     @Operation(
@@ -62,8 +64,9 @@ public class TransactionController {
                     @ApiResponse(responseCode = "500", description = "Internal server error", content = @Content)
             }
     )
-    public Mono<TransactionOutDTO> makeDepositToAnotherAccount(@RequestBody TransactionInDTO transactionInDTO) {
-        return transactionService.makeDepositToAnotherAccount(transactionInDTO);
+    public Mono<ResponseEntity<TransactionOutDTO>> makeDepositToAnotherAccount(@RequestBody TransactionInDTO transactionInDTO) {
+        return transactionService.makeDepositToAnotherAccount(transactionInDTO)
+                .map(transactionOutDTO -> ResponseEntity.status(HttpStatus.CREATED).body(transactionOutDTO));
     }
 
     @PostMapping("/compra/fisica")
@@ -76,8 +79,9 @@ public class TransactionController {
                     @ApiResponse(responseCode = "500", description = "Internal server error", content = @Content)
             }
     )
-    public Mono<TransactionOutDTO> makePhysicalPurchase(@RequestBody TransactionInDTO transactionInDTO) {
-        return transactionService.makePhysicalPurchase(transactionInDTO);
+    public Mono<ResponseEntity<TransactionOutDTO>> makePhysicalPurchase(@RequestBody TransactionInDTO transactionInDTO) {
+        return transactionService.makePhysicalPurchase(transactionInDTO)
+                .map(transactionOutDTO -> ResponseEntity.status(HttpStatus.CREATED).body(transactionOutDTO));
     }
 
     @PostMapping("/compra/web")
@@ -90,8 +94,9 @@ public class TransactionController {
                     @ApiResponse(responseCode = "500", description = "Internal server error", content = @Content)
             }
     )
-    public Mono<TransactionOutDTO> makeOnlinePurchase(@RequestBody TransactionInDTO transactionInDTO) {
-        return transactionService.makeOnlinePurchase(transactionInDTO);
+    public Mono<ResponseEntity<TransactionOutDTO>> makeOnlinePurchase(@RequestBody TransactionInDTO transactionInDTO) {
+        return transactionService.makeOnlinePurchase(transactionInDTO)
+                .map(transactionOutDTO -> ResponseEntity.status(HttpStatus.CREATED).body(transactionOutDTO));
     }
 
     @PostMapping("/retiro/cajero")
@@ -104,7 +109,8 @@ public class TransactionController {
                     @ApiResponse(responseCode = "500", description = "Internal server error", content = @Content)
             }
     )
-    public Mono<TransactionOutDTO> makeATMWithdrawal(@RequestBody TransactionInDTO transactionInDTO) {
-        return transactionService.makeATMWithdrawal(transactionInDTO);
+    public Mono<ResponseEntity<TransactionOutDTO>> makeATMWithdrawal(@RequestBody TransactionInDTO transactionInDTO) {
+        return transactionService.makeATMWithdrawal(transactionInDTO)
+                .map(transactionOutDTO -> ResponseEntity.status(HttpStatus.CREATED).body(transactionOutDTO));
     }
 }

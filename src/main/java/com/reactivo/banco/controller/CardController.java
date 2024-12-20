@@ -9,6 +9,8 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -34,8 +36,9 @@ public class CardController {
             }
     )
     @PostMapping
-    public Mono<CardOutDTO> crearTarjeta(@Valid @RequestBody CardInDTO tarjetaInDTO) {
-        return cardService.crearTarjeta(tarjetaInDTO);
+    public Mono<ResponseEntity<CardOutDTO>> crearTarjeta(@Valid @RequestBody CardInDTO tarjetaInDTO) {
+        return cardService.crearTarjeta(tarjetaInDTO)
+                .map(cardOutDTO -> ResponseEntity.status(HttpStatus.CREATED).body(cardOutDTO));
     }
 
     @Operation(
@@ -47,8 +50,8 @@ public class CardController {
             }
     )
     @GetMapping
-    public Flux<CardOutDTO> obtenerTodasLasTarjetas() {
-        return cardService.obtenerTodasLasTarjetas();
+    public Mono<ResponseEntity<Flux<CardOutDTO>>> obtenerTodasLasTarjetas() {
+        return Mono.just(ResponseEntity.ok(cardService.obtenerTodasLasTarjetas()));
     }
 
     @Operation(
@@ -61,8 +64,9 @@ public class CardController {
             }
     )
     @GetMapping("/{id}")
-    public Mono<CardOutDTO> obtenerTarjetaPorId(@PathVariable String id) {
-        return cardService.obtenerTarjetaPorId(id);
+    public Mono<ResponseEntity<CardOutDTO>> obtenerTarjetaPorId(@PathVariable String id) {
+        return cardService.obtenerTarjetaPorId(id)
+                .map(ResponseEntity::ok);
     }
 
     @Operation(
@@ -76,8 +80,9 @@ public class CardController {
             }
     )
     @PutMapping("/{id}")
-    public Mono<CardOutDTO> actualizarTarjeta(@PathVariable String id, @Valid @RequestBody CardInDTO tarjetaInDTO) {
-        return cardService.actualizarTarjeta(id, tarjetaInDTO);
+    public Mono<ResponseEntity<CardOutDTO>> actualizarTarjeta(@PathVariable String id, @Valid @RequestBody CardInDTO tarjetaInDTO) {
+        return cardService.actualizarTarjeta(id, tarjetaInDTO)
+                .map(ResponseEntity::ok);
     }
 
     @Operation(
@@ -90,7 +95,8 @@ public class CardController {
             }
     )
     @DeleteMapping("/{id}")
-    public Mono<Void> eliminarTarjeta(@PathVariable String id) {
-        return cardService.eliminarTarjeta(id);
+    public Mono<ResponseEntity<Void>> eliminarTarjeta(@PathVariable String id) {
+        return cardService.eliminarTarjeta(id)
+                .then(Mono.just(ResponseEntity.noContent().build()));
     }
 }

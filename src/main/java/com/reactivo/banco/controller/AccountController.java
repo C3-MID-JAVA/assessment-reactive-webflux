@@ -10,6 +10,8 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -29,14 +31,15 @@ public class AccountController {
             summary = "Create Account",
             description = "Endpoint to create a new account.",
             responses = {
-                    @ApiResponse(responseCode = "200", description = "Account created successfully", content = @Content(mediaType = "application/json", schema = @Schema(implementation = AccountOutDTO.class))),
+                    @ApiResponse(responseCode = "201", description = "Account created successfully", content = @Content(mediaType = "application/json", schema = @Schema(implementation = AccountOutDTO.class))),
                     @ApiResponse(responseCode = "400", description = "Invalid input", content = @Content),
                     @ApiResponse(responseCode = "500", description = "Internal server error", content = @Content)
             }
     )
     @PostMapping
-    public Mono<AccountOutDTO> createAccount(@Valid @RequestBody AccountInDTO cuentaInDTO) {
-        return accountService.createAccount(cuentaInDTO);
+    public Mono<ResponseEntity<AccountOutDTO>> createAccount(@Valid @RequestBody AccountInDTO cuentaInDTO) {
+        return accountService.createAccount(cuentaInDTO)
+                .map(accountOutDTO -> ResponseEntity.status(HttpStatus.CREATED).body(accountOutDTO));
     }
 
     @Operation(
@@ -48,8 +51,9 @@ public class AccountController {
             }
     )
     @GetMapping
-    public Flux<AccountOutDTO> getAllAccounts() {
-        return accountService.getAllAccounts();
+    public Mono<ResponseEntity<Flux<AccountOutDTO>>> getAllAccounts() {
+        Flux<AccountOutDTO> accounts = accountService.getAllAccounts();
+        return Mono.just(ResponseEntity.ok(accounts));
     }
 
     @Operation(
@@ -62,8 +66,10 @@ public class AccountController {
             }
     )
     @GetMapping("/{id}")
-    public Mono<AccountOutDTO> getAccountById(@PathVariable String id) {
-        return accountService.getAccountById(id);
+    public Mono<ResponseEntity<AccountOutDTO>> getAccountById(@PathVariable String id) {
+        return accountService.getAccountById(id)
+                .map(ResponseEntity::ok)
+                .defaultIfEmpty(ResponseEntity.notFound().build());
     }
 
     @Operation(
@@ -77,8 +83,10 @@ public class AccountController {
             }
     )
     @PutMapping("/{id}")
-    public Mono<AccountOutDTO> updateAccount(@PathVariable String id, @Valid @RequestBody AccountInDTO cuentaInDTO) {
-        return accountService.updateAccount(id, cuentaInDTO);
+    public Mono<ResponseEntity<AccountOutDTO>> updateAccount(@PathVariable String id, @Valid @RequestBody AccountInDTO cuentaInDTO) {
+        return accountService.updateAccount(id, cuentaInDTO)
+                .map(ResponseEntity::ok) // Devuelve 200 si la actualización fue exitosa.
+                .defaultIfEmpty(ResponseEntity.notFound().build()); // Devuelve 404 si no se encuentra.
     }
 
     @Operation(
@@ -91,7 +99,11 @@ public class AccountController {
             }
     )
     @DeleteMapping("/{id}")
-    public Mono<Void> deleteAccount(@PathVariable String id) {
-        return accountService.deleteAccount(id);
+    public Mono<ResponseEntity<Void>> deleteAccount(@PathVariable String id) {
+        return accountService.deleteAccount(id)
+                .then(Mono.just(ResponseEntity.noContent().build()));
     }
+
+
+
 }
