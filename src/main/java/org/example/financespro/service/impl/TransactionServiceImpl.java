@@ -7,7 +7,7 @@ import org.example.financespro.exception.CustomException;
 import org.example.financespro.mapper.TransactionMapper;
 import org.example.financespro.model.Account;
 import org.example.financespro.model.Transaction;
-import org.example.financespro.model.TransactionType;
+import org.example.financespro.model.TRANSACTION_TYPE;
 import org.example.financespro.repository.AccountRepository;
 import org.example.financespro.repository.TransactionRepository;
 import org.example.financespro.service.TransactionService;
@@ -40,7 +40,7 @@ public class TransactionServiceImpl implements TransactionService {
                 .flatMap(req -> accountRepository.findById(req.getAccountId())
                         .switchIfEmpty(Mono.error(new CustomException("Account not found with ID: " + req.getAccountId())))
                         .flatMap(account -> {
-                            TransactionType transactionType = TransactionType.valueOf(req.getTransactionType().toUpperCase());
+                            TRANSACTION_TYPE transactionType = TRANSACTION_TYPE.valueOf(req.getTransactionType().toUpperCase());
                             BigDecimal transactionCost = strategyFactory.getStrategy(transactionType)
                                     .calculateCost(req.getTransactionAmount());
                             BigDecimal newBalance = account.getBalance().subtract(req.getTransactionAmount().add(transactionCost));

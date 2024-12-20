@@ -1,7 +1,8 @@
 package org.example.financespro.strategy;
 
 import java.math.BigDecimal;
-import org.example.financespro.model.TransactionType;
+
+import org.example.financespro.model.TRANSACTION_TYPE;
 
 public class WithdrawalStrategy implements TransactionCostStrategy {
 
@@ -11,7 +12,7 @@ public class WithdrawalStrategy implements TransactionCostStrategy {
   }
 
   @Override
-  public TransactionType getType() {
-    return TransactionType.ATM_WITHDRAWAL;
+  public TRANSACTION_TYPE getType() {
+    return TRANSACTION_TYPE.ATM_WITHDRAWAL;
   }
 }

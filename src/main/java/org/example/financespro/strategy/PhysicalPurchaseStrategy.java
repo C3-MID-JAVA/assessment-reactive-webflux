@@ -1,7 +1,8 @@
 package org.example.financespro.strategy;
 
 import java.math.BigDecimal;
-import org.example.financespro.model.TransactionType;
+
+import org.example.financespro.model.TRANSACTION_TYPE;
 
 public class PhysicalPurchaseStrategy implements TransactionCostStrategy {
 
@@ -11,7 +12,7 @@ public class PhysicalPurchaseStrategy implements TransactionCostStrategy {
   }
 
   @Override
-  public TransactionType getType() {
-    return TransactionType.PHYSICAL_PURCHASE;
+  public TRANSACTION_TYPE getType() {
+    return TRANSACTION_TYPE.PHYSICAL_PURCHASE;
   }
 }
