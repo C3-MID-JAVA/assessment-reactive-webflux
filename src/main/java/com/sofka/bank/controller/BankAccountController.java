@@ -5,10 +5,13 @@ import com.sofka.bank.service.BankAccountService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
-import java.util.List;
 
 @RestController
 @RequestMapping("/accounts")
@@ -24,21 +27,23 @@ public class BankAccountController {
     @ApiResponse(responseCode = "200", description = "Accounts retrieved successfully")
     @ApiResponse(responseCode = "204", description = "No content not found")
     @GetMapping
-    public ResponseEntity<List<BankAccountDTO>> getAllAccounts(){
-        List<BankAccountDTO> accounts = bankAccountService.getAllAccounts();
-        return accounts.isEmpty()?
-                ResponseEntity.noContent().build():
-                ResponseEntity.ok(accounts);
+    public Mono<ResponseEntity<Flux<BankAccountDTO>>> getAllAccounts(){
+        Flux<BankAccountDTO> accounts = bankAccountService.getAllAccounts();
+        return accounts.collectList()
+                .flatMap(accountList -> accountList.isEmpty()
+                        ? Mono.just(ResponseEntity.noContent().build())
+                        : Mono.just(ResponseEntity.ok(Flux.fromIterable(accountList)))
+                );
     }
 
     @Operation(summary = "Create a new account", description = "Creates a new account in the system.")
     @ApiResponse(responseCode = "201", description = "Account created successfully")
     @ApiResponse(responseCode = "400", description = "Invalid input")
     @PostMapping
-    public ResponseEntity<BankAccountDTO> createAccount(@Valid @RequestBody BankAccountDTO bankAccountDTO) {
-        BankAccountDTO response=bankAccountService.createAccount(bankAccountDTO);
-        return response != null ?
-                ResponseEntity.status(201).body(response):
-                ResponseEntity.status(400).build();
+    public Mono<ResponseEntity<BankAccountDTO>> createAccount(@Valid @RequestBody BankAccountDTO bankAccountDTO) {
+        return bankAccountService.createAccount(bankAccountDTO)
+                .map(createdAccount -> ResponseEntity.status(201).body(createdAccount))
+                .onErrorResume(e -> Mono.error(new IllegalArgumentException(e.getMessage())))
+                .defaultIfEmpty(ResponseEntity.status(400).build());
     }
 }

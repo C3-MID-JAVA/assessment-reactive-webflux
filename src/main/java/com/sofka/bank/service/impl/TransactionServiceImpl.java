@@ -10,10 +10,15 @@ import com.sofka.bank.mapper.DTOMapper;
 import com.sofka.bank.repository.BankAccountRepository;
 import com.sofka.bank.repository.TransactionRepository;
 import com.sofka.bank.service.TransactionService;
-import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Mono;
 
 import java.time.LocalDateTime;
+import java.util.function.Consumer;
+import java.util.function.Predicate;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Service
 public class TransactionServiceImpl implements TransactionService {
@@ -27,29 +32,26 @@ public class TransactionServiceImpl implements TransactionService {
         this.bankAccountRepository = bankAccountRepository;
     }
 
+    private static final Logger logger = LoggerFactory.getLogger(TransactionServiceImpl.class);
+    private final Consumer<Transaction> logTransaction = transaction -> logger.info("Transaction successfully registered: {}", transaction.getId());
+
     @Override
-    @Transactional
-    public TransactionDTO registerTransaction(String accountId, TransactionDTO transactionDTO) {
-        BankAccount account = bankAccountRepository.findById(accountId)
-                .orElseThrow(() -> new AccountNotFoundException("Account with ID " + accountId + " not found"));
+    public Mono<TransactionDTO> registerTransaction(String accountId, TransactionDTO transactionDTO) {
+        TransactionType transactionType = transactionDTO.getTransactionType();
+        double fee = transactionType.getFee();
 
-        double fee = transactionDTO.getTransactionType().getFee();
-
-        if (transactionDTO.getTransactionType() == TransactionType.WITHDRAW_ATM ||
-                transactionDTO.getTransactionType() == TransactionType.ONLINE_PURCHASE ||
-                transactionDTO.getTransactionType() == TransactionType.DEPOSIT_ATM ||
-                transactionDTO.getTransactionType() == TransactionType.DEPOSIT_OTHER_ACCOUNT ||
-                transactionDTO.getTransactionType() == TransactionType.BRANCH_DEPOSIT ||
-                        transactionDTO.getTransactionType() == TransactionType.ONSITE_CARD_PURCHASE){
-
-            if (account.getGlobalBalance() < transactionDTO.getAmount() + fee) {
-                throw new InsufficientFundsException("Insufficient balance for transaction");
-            }
-        }
+        return bankAccountRepository.findById(accountId)
+                .switchIfEmpty(Mono.error(new AccountNotFoundException("Account with ID " + accountId + " not found")))
+                .flatMap(account -> {
+                    if (isTransactionTypeWithFee.test(transactionType)) {
+                        if (account.getGlobalBalance() < transactionDTO.getAmount() + fee) {
+                            return Mono.error(new InsufficientFundsException("Insufficient balance for transaction"));
+                        }
+                    }
 
 
         Transaction transaction = new Transaction();
-        transaction.setTransactionType(transactionDTO.getTransactionType());
+        transaction.setTransactionType(transactionType);
         transaction.setAmount(transactionDTO.getAmount());
         transaction.setFee(fee);
         transaction.setDate(LocalDateTime.now());
@@ -58,17 +60,27 @@ public class TransactionServiceImpl implements TransactionService {
 
         account.setGlobalBalance(account.getGlobalBalance() - transactionDTO.getAmount() - fee);
 
-        bankAccountRepository.save(account);
-        Transaction savedTransaction = transactionRepository.save(transaction);
-
-        return DTOMapper.toTransactionDTO(savedTransaction);
+                    return bankAccountRepository.save(account)
+                            .then(transactionRepository.save(transaction))
+                            .doOnNext(logTransaction)
+                            .map(DTOMapper::toTransactionDTO);
+                });
     }
 
+    private final Predicate<TransactionType> isTransactionTypeWithFee =
+        transactionType ->  transactionType == TransactionType.WITHDRAW_ATM ||
+                transactionType == TransactionType.ONLINE_PURCHASE ||
+                transactionType == TransactionType.DEPOSIT_ATM ||
+                transactionType == TransactionType.DEPOSIT_OTHER_ACCOUNT ||
+                transactionType == TransactionType.BRANCH_DEPOSIT ||
+                transactionType == TransactionType.ONSITE_CARD_PURCHASE;
+
+
     @Override
-    public Double getGlobalBalance(String accountId) {
-        BankAccount account = bankAccountRepository.findById(accountId)
-                .orElseThrow(() -> new AccountNotFoundException("Account with ID " + accountId + " not found"));
-        return account.getGlobalBalance();
+    public Mono<Double> getGlobalBalance(String accountId) {
+        return bankAccountRepository.findById(accountId)
+                .switchIfEmpty(Mono.error(new AccountNotFoundException("Account with ID " + accountId + " not found")))
+                .map(BankAccount::getGlobalBalance);
     }
 
 

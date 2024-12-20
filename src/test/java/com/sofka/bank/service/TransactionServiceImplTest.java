@@ -18,12 +18,13 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import reactor.core.publisher.Mono;
+import reactor.test.StepVerifier;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @ExtendWith(MockitoExtension.class)
 public class TransactionServiceImplTest {
@@ -49,7 +50,7 @@ public class TransactionServiceImplTest {
         validTransactionDTO = new TransactionDTO("40", TransactionType.WITHDRAW_ATM, 1000, 0, LocalDateTime.now(),
                 "ATM Withdrawal", new BankAccountDTO(accountId, "1000008", "John Doe", 5000.0, new ArrayList<>()));
 
-        Mockito.when(bankAccountRepository.findById(accountId)).thenReturn(Optional.of(account));
+        Mockito.when(bankAccountRepository.findById(accountId)).thenReturn(Mono.just(account));
     }
 
     @Test
@@ -59,18 +60,20 @@ public class TransactionServiceImplTest {
         double newBalance = account.getGlobalBalance() - validTransactionDTO.getAmount() - fee;
 
         Mockito.when(transactionRepository.save(Mockito.any(Transaction.class)))
-                .thenReturn(new Transaction(validTransactionDTO.getId(), validTransactionDTO.getTransactionType(),
-                        validTransactionDTO.getAmount(), fee,
-                        LocalDateTime.now(), validTransactionDTO.getDescription(), account));
+                .thenReturn(Mono.just(new Transaction(validTransactionDTO.getId(), validTransactionDTO.getTransactionType(),
+                        validTransactionDTO.getAmount(), fee, LocalDateTime.now(), validTransactionDTO.getDescription(), account)));
 
         Mockito.when(bankAccountRepository.save(Mockito.any(BankAccount.class)))
-                .thenReturn(account);
+                .thenReturn(Mono.just(account));
 
-        TransactionDTO result = transactionService.registerTransaction(accountId, validTransactionDTO);
-
-        assertNotNull(result);
-        assertEquals("ATM Withdrawal", result.getDescription());
-        assertEquals(newBalance, account.getGlobalBalance(), 0.01);
+        // Usamos StepVerifier para esperar y verificar el resultado del Mono
+        StepVerifier.create(transactionService.registerTransaction(accountId, validTransactionDTO))
+                .expectNextMatches(result -> {
+                    assertEquals("ATM Withdrawal", result.getDescription());
+                    assertEquals(newBalance, account.getGlobalBalance(), 0.01);
+                    return true;
+                })
+                .verifyComplete();
     }
 
     @Test
@@ -78,43 +81,41 @@ public class TransactionServiceImplTest {
     public void testRegisterTransaction_InsufficientFunds() {
         validTransactionDTO.setAmount(6000.0);
 
-        InsufficientFundsException thrown = assertThrows(InsufficientFundsException.class, () -> {
-            transactionService.registerTransaction(accountId, validTransactionDTO);
-        });
-
-        assertEquals("Insufficient balance for transaction", thrown.getMessage());
+        StepVerifier.create(transactionService.registerTransaction(accountId, validTransactionDTO))
+                .expectErrorMatches(throwable -> throwable instanceof InsufficientFundsException
+                        && throwable.getMessage().equals("Insufficient balance for transaction"))
+                .verify();
     }
 
     @Test
     @DisplayName("Should return an error message when the account for which transaction is intended is not found")
     public void testRegisterTransaction_AccountNotFound() {
-        Mockito.when(bankAccountRepository.findById(accountId)).thenReturn(Optional.empty());
+        Mockito.when(bankAccountRepository.findById(accountId)).thenReturn(Mono.empty());
 
-        AccountNotFoundException thrown = assertThrows(AccountNotFoundException.class, () -> {
-            transactionService.registerTransaction(accountId, validTransactionDTO);
-        });
-
-        assertEquals("Account with ID " + accountId + " not found", thrown.getMessage());
+        StepVerifier.create(transactionService.registerTransaction(accountId, validTransactionDTO))
+                .expectErrorMatches(throwable -> throwable instanceof AccountNotFoundException
+                        && throwable.getMessage().equals("Account with ID " + accountId + " not found"))
+                .verify();
     }
 
     @Test
     @DisplayName("Should successfully retrieve correct balance for specific account")
     public void testGetGlobalBalance_Success() {
-        Double balance = transactionService.getGlobalBalance(accountId);
+        Mockito.when(bankAccountRepository.findById(accountId)).thenReturn(Mono.just(account));
 
-        assertNotNull(balance);
-        assertEquals(5000.0, balance, 0.01);
+        StepVerifier.create(transactionService.getGlobalBalance(accountId))
+                .expectNext(5000.0)
+                .verifyComplete();
     }
 
     @Test
     @DisplayName("Should return error message when the account for which the balance was consulted is not found")
     public void testGetGlobalBalance_AccountNotFound() {
-        Mockito.when(bankAccountRepository.findById(accountId)).thenReturn(Optional.empty());
+        Mockito.when(bankAccountRepository.findById(accountId)).thenReturn(Mono.empty());
 
-        AccountNotFoundException thrown = assertThrows(AccountNotFoundException.class, () -> {
-            transactionService.getGlobalBalance(accountId);
-        });
-
-        assertEquals("Account with ID " + accountId + " not found", thrown.getMessage());
+        StepVerifier.create(transactionService.getGlobalBalance(accountId))
+                .expectErrorMatches(throwable -> throwable instanceof AccountNotFoundException
+                        && throwable.getMessage().equals("Account with ID " + accountId + " not found"))
+                .verify();
     }
 }

@@ -8,8 +8,10 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import reactor.core.publisher.Mono;
 
 @RestController
 @RequestMapping("/transactions")
@@ -25,12 +27,17 @@ public class TransactionController {
     @ApiResponse(responseCode = "200", description = "Account balance retrieved successfully")
     @ApiResponse(responseCode = "404", description = "Account not found")
     @GetMapping("/balance/{accountId}")
-    public ResponseEntity<Double> getGlobalBalance(@Parameter(description = "Id of account to be retrieve balance")
-                                                       @PathVariable String accountId) {
+    public Mono<ResponseEntity<Double>> getGlobalBalance(
+            @Parameter(description = "Id of account to retrieve balance")
+            @PathVariable String accountId) {
         logger.info("Fetching global balance for account ID: {}", accountId);
-        Double balance = transactionService.getGlobalBalance(accountId);
-        logger.info("Global balance for account ID {}: {}", accountId, balance);
-        return ResponseEntity.ok(balance);
+
+        return transactionService.getGlobalBalance(accountId)
+                .map(balance -> {
+                    logger.info("Global balance for account ID {}: {}", accountId, balance);
+                    return ResponseEntity.ok(balance);
+                })
+                .switchIfEmpty(Mono.just(ResponseEntity.notFound().build()));
     }
 
 
@@ -39,10 +46,12 @@ public class TransactionController {
     @ApiResponse(responseCode = "200", description = "Transaction registered successfully")
     @ApiResponse(responseCode = "404", description = "Account with provided id not found")
     @PostMapping("/{accountId}")
-    public ResponseEntity<TransactionDTO> registerTransaction(
+    public Mono<ResponseEntity<TransactionDTO>> registerTransaction(
             @PathVariable String accountId,
             @Valid @RequestBody TransactionDTO transactionDTO) {
-        TransactionDTO registeredTransaction = transactionService.registerTransaction(accountId, transactionDTO);
-        return ResponseEntity.ok(registeredTransaction);
+
+        return transactionService.registerTransaction(accountId, transactionDTO)
+                .map(ResponseEntity::ok)
+                .switchIfEmpty(Mono.just(ResponseEntity.notFound().build()));
     }
 }

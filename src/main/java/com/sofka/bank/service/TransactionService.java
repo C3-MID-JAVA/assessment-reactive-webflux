@@ -1,9 +1,9 @@
 package com.sofka.bank.service;
 
 import com.sofka.bank.dto.TransactionDTO;
-import com.sofka.bank.entity.TransactionType;
+import reactor.core.publisher.Mono;
 
 public interface TransactionService {
-    TransactionDTO registerTransaction(String accountId, TransactionDTO transactionDTO);
-    Double getGlobalBalance(String accountId);
+    Mono<TransactionDTO> registerTransaction(String accountId, TransactionDTO transactionDTO);
+    Mono<Double> getGlobalBalance(String accountId);
 }

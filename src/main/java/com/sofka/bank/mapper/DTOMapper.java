@@ -15,7 +15,7 @@ public class DTOMapper {
                 a.getAccountNumber(),
                 a.getAccountHolder(),
                 a.getGlobalBalance(),
-          new ArrayList<TransactionDTO>());
+                new ArrayList<TransactionDTO>());
     }
 
     public static BankAccount toBankAccount(BankAccountDTO aDTO){
@@ -31,31 +31,31 @@ public class DTOMapper {
 
     public static TransactionDTO toTransactionDTO(Transaction t) {
         return new TransactionDTO(
-            t.getId(),
-            t.getTransactionType(),
-            t.getAmount(),
-            t.getFee(),
-            t.getDate(),
-            t.getDescription(),
+                t.getId(),
+                t.getTransactionType(),
+                t.getAmount(),
+                t.getFee(),
+                t.getDate(),
+                t.getDescription(),
                 null
-                    );
+        );
 
-        }
+    }
 
-     public static Transaction toTransaction(TransactionDTO tDTO){
-            return new Transaction(
-                    tDTO.getId(),
-                    tDTO.getTransactionType(),
-                    tDTO.getAmount(),
-                    tDTO.getFee(),
-                    tDTO.getDate(),
-                    tDTO.getDescription(),
-                   null
+    public static Transaction toTransaction(TransactionDTO tDTO){
+        return new Transaction(
+                tDTO.getId(),
+                tDTO.getTransactionType(),
+                tDTO.getAmount(),
+                tDTO.getFee(),
+                tDTO.getDate(),
+                tDTO.getDescription(),
+                null
 
-            );
+        );
 
 
 
-        }
+    }
 
 }

@@ -1,11 +1,11 @@
 package com.sofka.bank.service;
 
 import com.sofka.bank.dto.BankAccountDTO;
-
-import java.util.List;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 public interface BankAccountService {
-    BankAccountDTO createAccount(BankAccountDTO bankAccountDTO);
-    List<BankAccountDTO> getAllAccounts ();
-    boolean isAccountNumberUnique(String accountNumber);
+    Mono<BankAccountDTO> createAccount(BankAccountDTO bankAccountDTO);
+    Flux<BankAccountDTO> getAllAccounts ();
+    Mono<Boolean> isAccountNumberUnique(String accountNumber);
 }
