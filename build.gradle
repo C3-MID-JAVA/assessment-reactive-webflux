@@ -1,0 +1,84 @@
+plugins {
+    id 'org.springframework.boot' version '3.1.0'
+    id 'io.spring.dependency-management' version '1.1.3'
+    id 'java'
+    id 'com.diffplug.spotless' version '6.19.0'
+    id 'checkstyle'
+}
+
+group = 'com.example'
+version = '1.0.0'
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
+}
+
+spotless {
+    java {
+        googleJavaFormat() // Aplica Google Java Format
+        // Configuración de Checkstyle
+        checkstyle {
+            configFile 'config/checkstyle/checkstyle.xml' // Asegúrate de que esta ruta sea correcta
+        }
+    }
+}
+
+checkstyle {
+    toolVersion = '10.12.0'
+    configFile = file('config/checkstyle/checkstyle.xml') // Asegúrate de que esta ruta sea correcta
+    ignoreFailures = false
+}
+
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    // https://mvnrepository.com/artifact/co.com.sofka/domain
+    implementation group: 'co.com.sofka', name: 'domain', version: '1.5.0'
+
+    // Spring WebFlux for Reactive Programming
+    implementation 'org.springframework.boot:spring-boot-starter-webflux'
+
+    // Spring Reactive MongoDB
+    implementation 'org.springframework.boot:spring-boot-starter-data-mongodb-reactive'
+
+    // Spring Validation for request validation
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+
+    // dotenv for environment variable management
+    implementation 'io.github.cdimascio:dotenv-java:2.2.0'
+
+    // SpringDoc OpenAPI for API documentation
+    implementation 'org.springdoc:springdoc-openapi-starter-webflux-ui:2.1.0'
+
+    // Testing libraries
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'de.flapdoodle.embed:de.flapdoodle.embed.mongo:3.5.3'
+    testImplementation 'io.projectreactor:reactor-test'
+    testImplementation 'org.mockito:mockito-core'
+    testImplementation 'org.mockito:mockito-junit-jupiter'
+}
+
+tasks.withType(JavaCompile) {
+    options.encoding = 'UTF-8'
+}
+
+tasks.withType(Test) {
+    useJUnitPlatform()
+    testLogging {
+        events "PASSED", "FAILED", "SKIPPED"
+    }
+
+    tasks.named('check').configure {
+        dependsOn 'checkstyleMain', 'checkstyleTest', 'spotlessCheck'
+    }
+
+    tasks.register('ciCheck') {
+        group = 'verification'
+        description = 'Runs all checks for CI/CD pipelines'
+        dependsOn 'checkstyleMain', 'spotlessCheck', 'test'
+    }
+}
