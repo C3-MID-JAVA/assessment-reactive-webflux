@@ -25,15 +25,15 @@ public class Cuenta {
 
     private List<Transaccion> transacciones= new ArrayList<>();
 
-    public Cuenta(String id, String numeroCuenta, BigDecimal bigDecimal, String juanPerez) {
+    public Cuenta(String id, String numeroCuenta, BigDecimal saldo, String titular) {
         this.numeroCuenta = numeroCuenta;
-        this.saldo = bigDecimal;
-        this.titular = juanPerez;
+        this.saldo = saldo;
+        this.titular = titular;
         this.id = id;
     }
-    public Cuenta(String numeroCuenta, BigDecimal bigDecimal, String juanPerez) {
+    public Cuenta(String numeroCuenta, BigDecimal saldo, String titular) {
         this.numeroCuenta = numeroCuenta;
-        this.saldo = bigDecimal;
-        this.titular = juanPerez;
+        this.saldo = saldo;
+        this.titular = titular;
     }
 }

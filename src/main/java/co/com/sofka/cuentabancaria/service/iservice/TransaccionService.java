@@ -6,8 +6,6 @@ import co.com.sofka.cuentabancaria.dto.transaccion.TransaccionResponseDTO;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import java.util.List;
-
 public interface TransaccionService {
 
     Flux<TransaccionResponseDTO> obtenerTransacciones();

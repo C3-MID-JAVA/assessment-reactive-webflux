@@ -71,31 +71,26 @@ public class TransaccionServiceUnitTest {
     void testRealizarRetiro_Exitoso() {
         TransaccionRequestDTO retiroRequestDTO = new TransaccionRequestDTO("9876543210", BigDecimal.valueOf(1000), RETIRO_CAJERO);
 
-        // Crear cuenta con ID simulado
         Cuenta cuenta = new Cuenta("someId", "9876543210", BigDecimal.valueOf(5000), "Juan Perez");
         when(cuentaRepository.findByNumeroCuenta("9876543210")).thenReturn(Mono.just(cuenta));
 
-        // Simula el comportamiento de la estrategia de transacción
         TransaccionStrategy strategy = mock(TransaccionStrategy.class);
         when(strategy.getCosto()).thenReturn(BigDecimal.valueOf(100));
         when(strategyFactory.getStrategy(RETIRO_CAJERO, TipoOperacion.RETIRO)).thenReturn(strategy);
 
-        // Simula el comportamiento de save() en cuentaRepository
         when(cuentaRepository.save(any(Cuenta.class))).thenReturn(Mono.just(cuenta));
 
-        // Simula el comportamiento de save() en transaccionRepository
         Transaccion transaccion = new Transaccion(BigDecimal.valueOf(1000), BigDecimal.valueOf(100), LocalDateTime.now(),
                 RETIRO_CAJERO, cuenta.getId());
-        when(transaccionRepository.save(any(Transaccion.class))).thenReturn(Mono.just(transaccion)); // Simula el save de transacción
+        when(transaccionRepository.save(any(Transaccion.class))).thenReturn(Mono.just(transaccion));
 
         Mono<TransaccionResponseDTO> responseMono = transaccionService.realizarRetiro(retiroRequestDTO);
 
-        // Verificamos la respuesta con StepVerifier
         StepVerifier.create(responseMono)
                 .assertNext(responseDTO -> {
                     assertEquals(BigDecimal.valueOf(3900), responseDTO.getNuevoSaldo());
                 })
-                .verifyComplete(); // Verificamos que se haya completado el flujo
+                .verifyComplete();
     }
 
 
@@ -103,12 +98,12 @@ public class TransaccionServiceUnitTest {
     void testRealizarDeposito_CuentaNoExiste() {
         TransaccionRequestDTO depositoRequestDTO = new TransaccionRequestDTO("1234567890", BigDecimal.valueOf(1000), DEPOSITO_CAJERO);
 
-        when(cuentaRepository.findByNumeroCuenta("1234567890")).thenReturn(Mono.empty()); // Mono.empty para cuenta no encontrada
+        when(cuentaRepository.findByNumeroCuenta("1234567890")).thenReturn(Mono.empty());
 
         Mono<TransaccionResponseDTO> responseMono = transaccionService.realizarDeposito(depositoRequestDTO);
 
         StepVerifier.create(responseMono)
-                .expectError(NoSuchElementException.class) // Verificamos que se emita la excepción correcta
+                .expectError(NoSuchElementException.class)
                 .verify();
     }
 

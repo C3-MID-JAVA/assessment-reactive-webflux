@@ -76,11 +76,7 @@ public class CuentaControllerTest {
         when(cuentaService.obtenerCuentas()).thenReturn(Flux.fromIterable(cuentasMock));
 
         Mono<ResponseEntity<Flux<CuentaResponseDTO>>> response = cuentaController.obtenerCuentas();
-        /*
-        assertNotNull(response);
-        assertEquals(200, response.getStatusCode().value());
-        assertEquals(cuentasMock, response.getBody());
-*/
+
         StepVerifier.create(response.flatMapMany(ResponseEntity::getBody))
                 .expectNext(cuentasMock.get(0))
                 .expectNext(cuentasMock.get(1))

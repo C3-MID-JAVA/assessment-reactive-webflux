@@ -40,7 +40,6 @@ public class TransaccionServiceIntegrationTest {
         transaccionRepository.deleteAll().block();
     }
 
-    // Test para realizarDeposito - caso positivo
     @Test
     void testRealizarDepositoExitoso() {
         Cuenta cuenta = new Cuenta("1234567890", BigDecimal.valueOf(1000), "Juan Perez");
@@ -58,7 +57,6 @@ public class TransaccionServiceIntegrationTest {
                 .verifyComplete();
     }
 
-    // Test para realizarDeposito - caso negativo
     @Test
     void testRealizarDepositoCuentaNoEncontrada() {
         TransaccionRequestDTO requestDTO = new TransaccionRequestDTO("99999", BigDecimal.valueOf(500), TipoTransaccion.DEPOSITO_CAJERO);
@@ -71,7 +69,6 @@ public class TransaccionServiceIntegrationTest {
                 .verify();
     }
 
-    // Test para realizarRetiro - caso positivo
     @Test
     void testRealizarRetiroExitoso() {
         Cuenta cuenta = new Cuenta("1234567890", BigDecimal.valueOf(1000), "Juan Perez");
@@ -89,7 +86,6 @@ public class TransaccionServiceIntegrationTest {
                 .verifyComplete();
     }
 
-    // Test para realizarRetiro - caso negativo
     @Test
     void testRealizarRetiroSaldoInsuficiente() {
         Cuenta cuenta = new Cuenta("1234567890", BigDecimal.valueOf(100), "Juan Perez");
@@ -105,7 +101,6 @@ public class TransaccionServiceIntegrationTest {
                 .verify();
     }
 
-    // Test para obtenerHistorialPorCuenta - caso positivo
     @Test
     void testObtenerHistorialPorCuentaExitoso() {
         Cuenta cuenta = new Cuenta("1234567890", BigDecimal.valueOf(1000), "Juan Perez");
@@ -122,7 +117,6 @@ public class TransaccionServiceIntegrationTest {
                 .verifyComplete();
     }
 
-    // Test para obtenerHistorialPorCuenta - caso negativo
     @Test
     void testObtenerHistorialPorCuentaNoExiste() {
         Flux<TransaccionResponseDTO> resultado = transaccionService.obtenerHistorialPorCuenta("99999");
@@ -132,7 +126,6 @@ public class TransaccionServiceIntegrationTest {
                 .verifyComplete();
     }
 
-    // Test para obtenerTransacciones - caso positivo
     @Test
     void testObtenerTransaccionesExitoso() {
         Cuenta cuenta = new Cuenta("1234567890", BigDecimal.valueOf(1000), "Juan Perez");
@@ -149,7 +142,6 @@ public class TransaccionServiceIntegrationTest {
                 .verifyComplete();
     }
 
-    // Test para obtenerTransacciones - caso negativo (sin transacciones)
     @Test
     void testObtenerTransaccionesSinDatos() {
         Flux<TransaccionResponseDTO> resultado = transaccionService.obtenerTransacciones();
