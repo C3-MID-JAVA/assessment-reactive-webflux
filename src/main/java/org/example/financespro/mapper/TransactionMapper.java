@@ -8,12 +8,12 @@ public class TransactionMapper {
 
   private TransactionMapper() {}
 
-  public static TransactionResponseDto toResponseDTO(Transaction transaction, BigDecimal remainingBalance) {
+  public static TransactionResponseDto toResponseDTO(
+      Transaction transaction, BigDecimal remainingBalance) {
     return new TransactionResponseDto(
-            transaction.getType(),
-            transaction.getAmount(),
-            transaction.getTransactionCost(),
-            remainingBalance
-    );
+        transaction.getType(),
+        transaction.getAmount(),
+        transaction.getTransactionCost(),
+        remainingBalance);
   }
 }

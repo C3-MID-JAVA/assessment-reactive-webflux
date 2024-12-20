@@ -6,6 +6,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.math.BigDecimal;
 import org.example.financespro.dto.request.AccountRequestDto;
 import org.example.financespro.dto.response.AccountResponseDto;
 import org.example.financespro.facade.FinanceFacade;
@@ -18,16 +19,12 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import reactor.core.publisher.Mono;
 
-import java.math.BigDecimal;
-
 @WebMvcTest(AccountController.class)
 class AccountControllerTest {
 
-  @Autowired
-  private MockMvc mockMvc;
+  @Autowired private MockMvc mockMvc;
 
-  @MockBean
-  private FinanceFacade financeFacade;
+  @MockBean private FinanceFacade financeFacade;
 
   @Test
   void shouldCreateAccountSuccessfully() throws Exception {
@@ -35,36 +32,41 @@ class AccountControllerTest {
     AccountResponseDto response = new AccountResponseDto("1", "123456", 1000.0);
 
     Mockito.when(financeFacade.createAccount(any(AccountRequestDto.class)))
-            .thenReturn(Mono.just(response));
+        .thenReturn(Mono.just(response));
 
-    mockMvc.perform(post("/accounts")
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(new ObjectMapper().writeValueAsString(request)))
-            .andExpect(status().isCreated())
-            .andExpect(jsonPath("$.accountNumber").value("123456"))
-            .andExpect(jsonPath("$.balance").value(1000.0));
+    mockMvc
+        .perform(
+            post("/accounts")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(new ObjectMapper().writeValueAsString(request)))
+        .andExpect(status().isCreated())
+        .andExpect(jsonPath("$.accountNumber").value("123456"))
+        .andExpect(jsonPath("$.balance").value(1000.0));
   }
 
   @Test
   void shouldGetAccountDetailsSuccessfully() throws Exception {
     AccountResponseDto response = new AccountResponseDto("1", "123456", 1000.0);
 
-    Mockito.when(financeFacade.getAccountDetails("123456"))
-            .thenReturn(Mono.just(response));
+    Mockito.when(financeFacade.getAccountDetails("123456")).thenReturn(Mono.just(response));
 
-    mockMvc.perform(get("/accounts/123456").contentType(MediaType.APPLICATION_JSON))
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$.accountNumber").value("123456"))
-            .andExpect(jsonPath("$.balance").value(1000.0));
+    mockMvc
+        .perform(get("/accounts/123456").contentType(MediaType.APPLICATION_JSON))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.accountNumber").value("123456"))
+        .andExpect(jsonPath("$.balance").value(1000.0));
   }
 
   @Test
   void shouldReturnBadRequestForInvalidAccountNumber() throws Exception {
-    AccountRequestDto request = new AccountRequestDto("", BigDecimal.valueOf(1000)); // Número de cuenta inválido
+    AccountRequestDto request =
+        new AccountRequestDto("", BigDecimal.valueOf(1000)); // Número de cuenta inválido
 
-    mockMvc.perform(post("/accounts")
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(new ObjectMapper().writeValueAsString(request)))
-            .andExpect(status().isBadRequest());
+    mockMvc
+        .perform(
+            post("/accounts")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(new ObjectMapper().writeValueAsString(request)))
+        .andExpect(status().isBadRequest());
   }
 }

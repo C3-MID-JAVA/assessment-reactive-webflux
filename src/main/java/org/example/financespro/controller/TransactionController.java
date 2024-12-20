@@ -23,9 +23,10 @@ public class TransactionController {
 
   @PostMapping
   public Mono<ResponseEntity<TransactionResponseDto>> processTransaction(
-          @Valid @RequestBody TransactionRequestDto request) { // Valida solo este parámetro
-    return financeFacade.processTransaction(request)
-            .map(transaction -> ResponseEntity.ok(transaction))
-            .onErrorResume(e -> Mono.just(ResponseEntity.status(HttpStatus.BAD_REQUEST).build()));
+      @Valid @RequestBody TransactionRequestDto request) { // Valida solo este parámetro
+    return financeFacade
+        .processTransaction(request)
+        .map(transaction -> ResponseEntity.ok(transaction))
+        .onErrorResume(e -> Mono.just(ResponseEntity.status(HttpStatus.BAD_REQUEST).build()));
   }
 }

@@ -9,7 +9,11 @@ public final class TransactionResponseDto {
   private final BigDecimal transactionCost;
   private final BigDecimal remainingBalance;
 
-  public TransactionResponseDto(String transactionType, BigDecimal transactionAmount, BigDecimal transactionCost, BigDecimal remainingBalance) {
+  public TransactionResponseDto(
+      String transactionType,
+      BigDecimal transactionAmount,
+      BigDecimal transactionCost,
+      BigDecimal remainingBalance) {
     this.transactionType = transactionType;
     this.transactionAmount = transactionAmount;
     this.transactionCost = transactionCost;

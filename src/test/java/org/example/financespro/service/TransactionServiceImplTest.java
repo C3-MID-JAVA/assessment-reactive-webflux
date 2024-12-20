@@ -1,5 +1,9 @@
 package org.example.financespro.service.impl;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
+
+import java.math.BigDecimal;
 import org.example.financespro.dto.request.TransactionRequestDto;
 import org.example.financespro.dto.response.TransactionResponseDto;
 import org.example.financespro.model.Account;
@@ -14,24 +18,15 @@ import org.mockito.MockitoAnnotations;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
-import java.math.BigDecimal;
-
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
-
 class TransactionServiceImplTest {
 
-  @Mock
-  private AccountRepository accountRepository;
+  @Mock private AccountRepository accountRepository;
 
-  @Mock
-  private TransactionRepository transactionRepository;
+  @Mock private TransactionRepository transactionRepository;
 
-  @Mock
-  private StrategyFactory strategyFactory;
+  @Mock private StrategyFactory strategyFactory;
 
-  @InjectMocks
-  private TransactionServiceImpl transactionService;
+  @InjectMocks private TransactionServiceImpl transactionService;
 
   @BeforeEach
   void setUp() {
@@ -40,7 +35,8 @@ class TransactionServiceImplTest {
 
   @Test
   void shouldProcessTransactionSuccessfully() {
-    TransactionRequestDto request = new TransactionRequestDto("123", "ATM_WITHDRAWAL", BigDecimal.valueOf(500));
+    TransactionRequestDto request =
+        new TransactionRequestDto("123", "ATM_WITHDRAWAL", BigDecimal.valueOf(500));
     Account account = Account.create("123", "123456", BigDecimal.valueOf(1000));
 
     when(accountRepository.findById("123")).thenReturn(Mono.just(account));
@@ -49,7 +45,7 @@ class TransactionServiceImplTest {
     Mono<TransactionResponseDto> result = transactionService.processTransaction(request);
 
     StepVerifier.create(result)
-            .expectNextMatches(response -> response.getTransactionType().equals("ATM_WITHDRAWAL"))
-            .verifyComplete();
+        .expectNextMatches(response -> response.getTransactionType().equals("ATM_WITHDRAWAL"))
+        .verifyComplete();
   }
 }

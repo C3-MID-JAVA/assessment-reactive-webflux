@@ -2,13 +2,34 @@ plugins {
     id 'org.springframework.boot' version '3.1.0'
     id 'io.spring.dependency-management' version '1.1.3'
     id 'java'
+    id 'com.diffplug.spotless' version '6.19.0'
+    id 'checkstyle'
 }
 
 group = 'com.example'
 version = '1.0.0'
+
 java {
-    sourceCompatibility = '17'
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
 }
+
+spotless {
+    java {
+        googleJavaFormat() // Aplica Google Java Format
+        // Configuración de Checkstyle
+        checkstyle {
+            configFile 'config/checkstyle/checkstyle.xml' // Asegúrate de que esta ruta sea correcta
+        }
+    }
+}
+
+checkstyle {
+    toolVersion = '10.12.0'
+    configFile = file('config/checkstyle/checkstyle.xml') // Asegúrate de que esta ruta sea correcta
+    ignoreFailures = false
+}
+
 
 repositories {
     mavenCentral()
@@ -49,5 +70,15 @@ tasks.withType(Test) {
     useJUnitPlatform()
     testLogging {
         events "PASSED", "FAILED", "SKIPPED"
+    }
+
+    tasks.named('check').configure {
+        dependsOn 'checkstyleMain', 'checkstyleTest', 'spotlessCheck'
+    }
+
+    tasks.register('ciCheck') {
+        group = 'verification'
+        description = 'Runs all checks for CI/CD pipelines'
+        dependsOn 'checkstyleMain', 'spotlessCheck', 'test'
     }
 }

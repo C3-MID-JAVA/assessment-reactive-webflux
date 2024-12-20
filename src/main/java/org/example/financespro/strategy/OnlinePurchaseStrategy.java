@@ -1,7 +1,6 @@
 package org.example.financespro.strategy;
 
 import java.math.BigDecimal;
-
 import org.example.financespro.model.TRANSACTION_TYPE;
 
 public class OnlinePurchaseStrategy implements TransactionCostStrategy {

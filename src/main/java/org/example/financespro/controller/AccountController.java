@@ -22,16 +22,19 @@ public class AccountController {
   }
 
   @PostMapping
-  public Mono<ResponseEntity<AccountResponseDto>> createAccount(@Valid @RequestBody AccountRequestDto request) {
-    return financeFacade.createAccount(request)
-            .map(account -> ResponseEntity.status(HttpStatus.CREATED).body(account))
-            .onErrorResume(e -> Mono.just(ResponseEntity.status(HttpStatus.BAD_REQUEST).build()));
+  public Mono<ResponseEntity<AccountResponseDto>> createAccount(
+      @Valid @RequestBody AccountRequestDto request) {
+    return financeFacade
+        .createAccount(request)
+        .map(account -> ResponseEntity.status(HttpStatus.CREATED).body(account))
+        .onErrorResume(e -> Mono.just(ResponseEntity.status(HttpStatus.BAD_REQUEST).build()));
   }
 
   @GetMapping("/{accountNumber}")
   public Mono<ResponseEntity<AccountResponseDto>> getAccount(@PathVariable String accountNumber) {
-    return financeFacade.getAccountDetails(accountNumber)
-            .map(account -> ResponseEntity.ok(account))
-            .defaultIfEmpty(ResponseEntity.notFound().build());
+    return financeFacade
+        .getAccountDetails(accountNumber)
+        .map(account -> ResponseEntity.ok(account))
+        .defaultIfEmpty(ResponseEntity.notFound().build());
   }
 }

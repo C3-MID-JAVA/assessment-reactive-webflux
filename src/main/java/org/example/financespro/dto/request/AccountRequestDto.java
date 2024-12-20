@@ -13,9 +13,9 @@ public final class AccountRequestDto {
 
   @NotNull(message = "Initial balance is required.")
   @DecimalMin(
-          value = "0.0",
-          inclusive = false,
-          message = "Initial balance must be a positive value.")
+      value = "0.0",
+      inclusive = false,
+      message = "Initial balance must be a positive value.")
   private final BigDecimal initialBalance;
 
   public AccountRequestDto(String number, BigDecimal initialBalance) {

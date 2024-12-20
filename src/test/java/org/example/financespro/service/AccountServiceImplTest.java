@@ -1,5 +1,9 @@
 package org.example.financespro.service.impl;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
+
+import java.math.BigDecimal;
 import org.example.financespro.dto.request.AccountRequestDto;
 import org.example.financespro.dto.response.AccountResponseDto;
 import org.example.financespro.model.Account;
@@ -11,18 +15,11 @@ import org.mockito.MockitoAnnotations;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
-import java.math.BigDecimal;
-
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
-
 public class AccountServiceImplTest {
 
-  @Mock
-  private AccountRepository accountRepository;
+  @Mock private AccountRepository accountRepository;
 
-  @InjectMocks
-  private AccountServiceImpl accountService;
+  @InjectMocks private AccountServiceImpl accountService;
 
   public AccountServiceImplTest() {
     MockitoAnnotations.openMocks(this);
@@ -38,7 +35,7 @@ public class AccountServiceImplTest {
     Mono<AccountResponseDto> result = accountService.createAccount(request);
 
     StepVerifier.create(result)
-            .expectNextMatches(response -> response.getAccountNumber().equals("12345"))
-            .verifyComplete();
+        .expectNextMatches(response -> response.getAccountNumber().equals("12345"))
+        .verifyComplete();
   }
 }

@@ -9,9 +9,6 @@ public class AccountMapper {
 
   public static AccountResponseDto toResponseDTO(Account account) {
     return new AccountResponseDto(
-            account.getId(),
-            account.getAccountNumber(),
-            account.getBalance().doubleValue()
-    );
+        account.getId(), account.getAccountNumber(), account.getBalance().doubleValue());
   }
 }

@@ -7,14 +7,14 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @Document("transactions")
 public class Transaction {
 
-  @Id
-  private final String id;
+  @Id private final String id;
   private final String accountId;
   private final String type;
   private final BigDecimal amount;
   private final BigDecimal transactionCost;
 
-  private Transaction(String id, String accountId, String type, BigDecimal amount, BigDecimal transactionCost) {
+  private Transaction(
+      String id, String accountId, String type, BigDecimal amount, BigDecimal transactionCost) {
     this.id = id;
     this.accountId = accountId;
     this.type = type;
@@ -23,7 +23,8 @@ public class Transaction {
   }
 
   // Factory Method for creating a new Transaction
-  public static Transaction create(String id, String accountId, String type, BigDecimal amount, BigDecimal transactionCost) {
+  public static Transaction create(
+      String id, String accountId, String type, BigDecimal amount, BigDecimal transactionCost) {
     return new Transaction(id, accountId, type, amount, transactionCost);
   }
 

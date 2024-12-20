@@ -8,8 +8,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @Document("accounts")
 public class Account {
 
-  @Id
-  private final String id;
+  @Id private final String id;
 
   @Indexed(unique = true)
   private final String accountNumber;

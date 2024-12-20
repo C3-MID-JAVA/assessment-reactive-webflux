@@ -18,7 +18,8 @@ public final class TransactionRequestDto {
   @DecimalMin(value = "0.01", inclusive = false, message = "Transaction amount must be positive.")
   private final BigDecimal transactionAmount;
 
-  public TransactionRequestDto(String accountId, String transactionType, BigDecimal transactionAmount) {
+  public TransactionRequestDto(
+      String accountId, String transactionType, BigDecimal transactionAmount) {
     this.accountId = accountId;
     this.transactionType = transactionType;
     this.transactionAmount = transactionAmount;
