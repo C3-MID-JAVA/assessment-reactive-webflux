@@ -1,0 +1,63 @@
+plugins {
+    id 'java'
+    id 'org.springframework.boot' version '3.4.0'
+    id 'io.spring.dependency-management' version '1.1.6'
+}
+
+group = 'co.com.sofka'
+version = '0.0.1-SNAPSHOT'
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(17)
+    }
+}
+
+configurations {
+    compileOnly {
+        extendsFrom annotationProcessor
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compileOnly 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation group: 'org.mockito', name: 'mockito-core', version: '5.14.2'
+    testImplementation group: 'io.projectreactor', name: 'reactor-test', version: '3.7.1'
+
+    implementation group: 'org.springframework.boot', name: 'spring-boot-starter-logging', version: '3.4.0'
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation group: 'jakarta.validation', name: 'jakarta.validation-api', version: '3.1.0'
+    implementation group: 'org.springframework.boot', name: 'spring-boot-starter-validation', version: '3.4.0'
+    implementation group: 'org.springdoc', name: 'springdoc-openapi-starter-webmvc-ui', version: '2.7.0'
+    implementation group: 'javax.xml.bind', name: 'jaxb-api', version: '2.3.1'
+    implementation 'org.springframework.boot:spring-boot-starter-data-mongodb-reactive'
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+
+    testLogging {
+        events "passed", "skipped", "failed"
+    }
+
+    reports {
+        html {
+            destination file("$buildDir/reports/tests/test")
+        }
+        junitXml {
+            destination file("$buildDir/test-logs")
+        }
+    }
+}
+
+tasks.withType(JavaCompile) {
+    options.compilerArgs << "-Xlint:deprecation"
+}
